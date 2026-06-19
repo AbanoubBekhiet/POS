@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useForm, usePage } from '@inertiajs/react'
+import { useForm, usePage, Link } from '@inertiajs/react'
 import { Leaf, Lock, ArrowLeft } from 'lucide-react'
 
 export default function Login() {
@@ -111,6 +110,15 @@ export default function Login() {
                                 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5"
                                 style={{ color: '#B8B5AE' }}
                             />
+                        </div>
+                        <div className="flex justify-start mt-2">
+                            <Link
+                                href="/auth/reset-password"
+                                className="text-xs font-semibold hover:underline"
+                                style={{ color: '#2E5A44' }}
+                            >
+                                نسيت كلمة المرور؟
+                            </Link>
                         </div>
                     </div>
 

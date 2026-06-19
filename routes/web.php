@@ -17,6 +17,8 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/reset-password', [AuthController::class, 'resetPasswordPage'])->name('reset-password');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password.post');
+        Route::get('/verify-reset-code', [AuthController::class, 'verifyResetCodePage'])->name('verify-reset-code');
+        Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode'])->name('verify-reset-code.post');
     });
 
 Route::get('/pos', function () {
