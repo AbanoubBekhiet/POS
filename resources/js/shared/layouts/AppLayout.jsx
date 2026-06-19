@@ -6,7 +6,7 @@ export default function AppLayout({ children, title, subtitle }) {
     const [mobileOpen, setMobileOpen] = useState(false)
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FAF9F6' }}>
+        <div className="min-h-screen" dir="rtl" style={{ backgroundColor: '#FAF9F6' }}>
             {/* Mobile Overlay */}
             {mobileOpen && (
                 <div
@@ -18,16 +18,16 @@ export default function AppLayout({ children, title, subtitle }) {
 
             {/* Sidebar */}
             <div className={`
-                fixed inset-y-0 left-0 z-40
+                fixed inset-y-0 right-0 z-40
                 transform transition-transform duration-300 ease-in-out
                 lg:translate-x-0
-                ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+                ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}
             `}>
                 <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
             </div>
 
             {/* Main Content */}
-            <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+            <div className={`transition-all duration-300 ${collapsed ? 'lg:mr-20' : 'lg:mr-64'}`}>
                 <Header
                     title={title}
                     subtitle={subtitle}
