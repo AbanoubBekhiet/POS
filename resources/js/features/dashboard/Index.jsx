@@ -7,14 +7,14 @@ import SalesChart from './components/SalesChart'
 
 export default function DashboardIndex() {
     const stats = [
-        { title: 'Total Revenue',    value: '$45,231', change: 12.5, changeLabel: 'vs last month', icon: DollarSign, color: 'green'  },
-        { title: 'Total Orders',     value: '1,257',   change: 8.2,  changeLabel: 'vs last month', icon: ShoppingBag, color: 'teal'  },
-        { title: 'Total Customers',  value: '842',     change: 3.1,  changeLabel: 'vs last month', icon: Users,       color: 'amber' },
-        { title: 'Avg. Order Value', value: '$35.99',  change: -2.4, changeLabel: 'vs last month', icon: TrendingUp,  color: 'rose'  },
+        { title: 'إجمالي الإيرادات',    value: '45,231 د.إ', change: 12.5, changeLabel: 'مقارنة بالشهر الماضي', icon: DollarSign, color: 'green'  },
+        { title: 'إجمالي الطلبات',     value: '1,257 طلب',   change: 8.2,  changeLabel: 'مقارنة بالشهر الماضي', icon: ShoppingBag, color: 'teal'  },
+        { title: 'إجمالي العملاء',  value: '842 عميل',     change: 3.1,  changeLabel: 'مقارنة بالشهر الماضي', icon: Users,       color: 'amber' },
+        { title: 'متوسط قيمة الطلب', value: '35.99 د.إ',  change: -2.4, changeLabel: 'مقارنة بالشهر الماضي', icon: TrendingUp,  color: 'rose'  },
     ]
 
     return (
-        <AppLayout title="Dashboard" subtitle="Welcome back! Here's what's happening today.">
+        <AppLayout title="لوحة التحكم" subtitle="أهلاً بك مجدداً في منظومة أبو الدهب! إليك نظرة سريعة على أداء اليوم.">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-7">
                 {stats.map((stat, i) => (

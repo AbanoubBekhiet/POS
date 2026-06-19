@@ -1,26 +1,26 @@
 const salesData = [
-    { month: 'Jan', sales: 4200 },
-    { month: 'Feb', sales: 3800 },
-    { month: 'Mar', sales: 5100 },
-    { month: 'Apr', sales: 4600 },
-    { month: 'May', sales: 5800 },
-    { month: 'Jun', sales: 6200 },
-    { month: 'Jul', sales: 5900 },
+    { month: 'يناير', sales: 4200 },
+    { month: 'فبراير', sales: 3800 },
+    { month: 'مارس', sales: 5100 },
+    { month: 'أبريل', sales: 4600 },
+    { month: 'مايو', sales: 5800 },
+    { month: 'يونيو', sales: 6200 },
+    { month: 'يوليو', sales: 5900 },
 ]
 
 export default function SalesChart() {
     const maxSales = Math.max(...salesData.map(d => d.sales))
 
     return (
-        <div className="rounded-2xl p-5 sm:p-6 h-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #EAE8E2' }}>
+        <div className="rounded-2xl p-5 sm:p-6 h-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #EAE8E2' }} dir="rtl">
             <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h3 className="text-base font-bold" style={{ color: '#1A2D23' }}>Sales Overview</h3>
-                    <p className="text-sm mt-0.5" style={{ color: '#9A978F' }}>Monthly revenue trends</p>
+                <div className="text-right">
+                    <h3 className="text-base font-bold" style={{ color: '#1A2D23' }}>نظرة عامة على المبيعات</h3>
+                    <p className="text-sm mt-0.5" style={{ color: '#9A978F' }}>مخطط الإيرادات الشهري</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3A7259' }} />
-                    <span className="text-xs font-medium" style={{ color: '#9A978F' }}>Revenue</span>
+                    <span className="text-xs font-medium" style={{ color: '#9A978F' }}>الإيرادات</span>
                 </div>
             </div>
 
@@ -34,7 +34,7 @@ export default function SalesChart() {
                                 className="text-xs font-semibold transition-opacity opacity-0 group-hover:opacity-100"
                                 style={{ color: '#2E5A44' }}
                             >
-                                ${(item.sales / 1000).toFixed(1)}k
+                                {item.sales} د.إ
                             </div>
                             <div className="w-full relative" style={{ height: `${height}%` }}>
                                 <div

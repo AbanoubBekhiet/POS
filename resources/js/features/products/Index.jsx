@@ -6,21 +6,19 @@ import CategoryFilter from './components/CategoryFilter'
 import { Plus, LayoutGrid, List } from 'lucide-react'
 
 const sampleProducts = [
-    { id: 1, name: 'Espresso Shot', category: 'Beverages', price: 5.00, stock: 120, emoji: '☕' },
-    { id: 2, name: 'Chicken Sandwich', category: 'Food', price: 8.00, stock: 45, emoji: '🥪' },
-    { id: 3, name: 'Caesar Salad', category: 'Food', price: 7.00, stock: 30, emoji: '🥗' },
-    { id: 4, name: 'Iced Latte', category: 'Beverages', price: 5.00, stock: 85, emoji: '🧊' },
-    { id: 5, name: 'Blueberry Muffin', category: 'Bakery', price: 3.00, stock: 60, emoji: '🧁' },
-    { id: 6, name: 'Orange Juice', category: 'Beverages', price: 4.50, stock: 0, emoji: '🍊' },
-    { id: 7, name: 'Margherita Pizza', category: 'Food', price: 12.00, stock: 3, emoji: '🍕' },
-    { id: 8, name: 'Chocolate Cake', category: 'Bakery', price: 6.50, stock: 18, emoji: '🍰' },
-    { id: 9, name: 'Green Tea', category: 'Beverages', price: 3.50, stock: 90, emoji: '🍵' },
-    { id: 10, name: 'Croissant', category: 'Bakery', price: 2.50, stock: 42, emoji: '🥐' },
-    { id: 11, name: 'Beef Burger', category: 'Food', price: 10.00, stock: 25, emoji: '🍔' },
-    { id: 12, name: 'Milkshake', category: 'Beverages', price: 6.00, stock: 55, emoji: '🥤' },
+    { id: 1, name: 'مزيج بذور الطماطم', category: 'بذور ونباتات', price: 15.00, stock: 120, emoji: '🍅' },
+    { id: 2, name: 'مجرفة حديد مطروق', category: 'أدوات زراعية', price: 45.00, stock: 3, emoji: '🛠️' },
+    { id: 3, name: 'تربة عضوية ممتازة 10كجم', category: 'تربة وأسمدة', price: 25.00, stock: 60, emoji: '🪴' },
+    { id: 4, name: 'خرطوم ري مرن 20م', category: 'مستلزمات الحديقة', price: 75.00, stock: 18, emoji: '🚰' },
+    { id: 5, name: 'سماد نتروجين سائل 1 لتر', category: 'تربة وأسمدة', price: 30.00, stock: 45, emoji: '🧪' },
+    { id: 6, name: 'بذور ريحان إيطالي', category: 'بذور ونباتات', price: 5.00, stock: 200, emoji: '🌱' },
+    { id: 7, name: 'مقص تقليم أشجار', category: 'أدوات زراعية', price: 35.00, stock: 8, emoji: '✂️' },
+    { id: 8, name: 'مرش مياه يدوي 2 لتر', category: 'أدوات زراعية', price: 18.00, stock: 0, emoji: '💦' },
+    { id: 9, name: 'حوض زهور فخار كبير', category: 'مستلزمات الحديقة', price: 40.00, stock: 12, emoji: '🏺' },
+    { id: 10, name: 'قفازات حماية زراعية', category: 'مستلزمات الحديقة', price: 12.00, stock: 50, emoji: '🧤' },
 ]
 
-const categories = ['Beverages', 'Food', 'Bakery']
+const categories = ['بذور ونباتات', 'أدوات زراعية', 'تربة وأسمدة', 'مستلزمات الحديقة']
 
 export default function ProductsIndex() {
     const [search, setSearch] = useState('')
@@ -34,12 +32,12 @@ export default function ProductsIndex() {
     })
 
     return (
-        <AppLayout title="Products" subtitle={`${filtered.length} products available`}>
+        <AppLayout title="المنتجات" subtitle={`${filtered.length} منتج متوفر حالياً`}>
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6" dir="rtl">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
                     <SearchInput
-                        placeholder="Search products..."
+                        placeholder="البحث عن المنتجات..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="sm:w-72"
@@ -52,25 +50,25 @@ export default function ProductsIndex() {
                 </div>
                 <div className="flex items-center gap-2">
                     {/* View Toggle */}
-                    <div className="flex items-center bg-surface-100 rounded-xl p-1">
+                    <div className="flex items-center bg-[#EAE8E2] rounded-xl p-1">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-surface-400'}`}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-[#7C7870]'}`}
                         >
                             <LayoutGrid className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-surface-400'}`}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-[#7C7870]'}`}
                         >
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-                    <Button icon={Plus}>Add Product</Button>
+                    <Button icon={Plus}>إضافة منتج</Button>
                 </div>
             </div>
 
-            {/* Product Grid */}
+            {/* Product Grid / List */}
             {viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                     {filtered.map((product, i) => (
@@ -80,28 +78,36 @@ export default function ProductsIndex() {
                     ))}
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl border border-surface-100 overflow-hidden">
-                    <table className="w-full">
+                <div className="bg-white rounded-2xl border border-surface-100 overflow-hidden text-right" dir="rtl">
+                    <table className="w-full text-right">
                         <thead>
-                            <tr className="border-b border-surface-100">
-                                <th className="text-left text-xs font-semibold text-surface-500 uppercase tracking-wider px-6 py-3">Product</th>
-                                <th className="text-left text-xs font-semibold text-surface-500 uppercase tracking-wider px-6 py-3 hidden sm:table-cell">Category</th>
-                                <th className="text-left text-xs font-semibold text-surface-500 uppercase tracking-wider px-6 py-3">Price</th>
-                                <th className="text-left text-xs font-semibold text-surface-500 uppercase tracking-wider px-6 py-3 hidden md:table-cell">Stock</th>
+                            <tr className="border-b border-[#EAE8E2]" style={{ backgroundColor: '#FAF9F6' }}>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">المنتج</th>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3 hidden sm:table-cell">القسم</th>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">السعر</th>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3 hidden md:table-cell">المخزون</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.map((product) => (
-                                <tr key={product.id} className="border-b border-surface-50 hover:bg-surface-50/50 transition-colors">
+                                <tr key={product.id} className="border-b border-[#FAF9F6] hover:bg-[#FAF9F6]/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <span className="text-xl">{product.emoji}</span>
-                                            <span className="text-sm font-semibold text-surface-800">{product.name}</span>
+                                            <span className="text-sm font-semibold text-[#1A2D23]">{product.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-surface-500 hidden sm:table-cell">{product.category}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-surface-800">${product.price.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-sm text-surface-500 hidden md:table-cell">{product.stock}</td>
+                                    <td className="px-6 py-4 text-sm text-[#7C7870] hidden sm:table-cell">{product.category}</td>
+                                    <td className="px-6 py-4 text-sm font-bold text-[#1A2D23]">{product.price.toFixed(2)} د.إ</td>
+                                    <td className="px-6 py-4 text-sm text-[#7C7870] hidden md:table-cell">
+                                        {product.stock === 0 ? (
+                                            <span className="text-[#C0392B] font-semibold">نفذت الكمية</span>
+                                        ) : product.stock <= 5 ? (
+                                            <span className="text-[#D4A017] font-semibold">مخزون منخفض ({product.stock})</span>
+                                        ) : (
+                                            <span>{product.stock} وحدات</span>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

@@ -1,6 +1,6 @@
 export default function CategoryFilter({ categories, selected, onChange }) {
     return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" dir="rtl">
             {['all', ...categories].map((cat) => {
                 const active = selected === cat
                 return (
@@ -15,7 +15,7 @@ export default function CategoryFilter({ categories, selected, onChange }) {
                         onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = '#7FAF98' }}
                         onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = '#D6D4CE' }}
                     >
-                        {cat === 'all' ? 'All' : cat}
+                        {cat === 'all' ? 'الكل' : cat}
                     </button>
                 )
             })}

@@ -5,19 +5,21 @@ import {
     ShoppingCart,
     ClipboardList,
     Users,
-    Settings,
-    ChevronLeft,
-    ChevronRight,
+    Layers,
+    Truck,
+    Plus,
+    HelpCircle,
+    LogOut,
     Leaf,
 } from 'lucide-react'
 
 const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/' },
-    { name: 'POS', icon: ShoppingCart, href: '/pos' },
-    { name: 'Products', icon: Package, href: '/products' },
-    { name: 'Orders', icon: ClipboardList, href: '/orders' },
-    { name: 'Customers', icon: Users, href: '/customers' },
-    { name: 'Settings', icon: Settings, href: '/settings' },
+    { name: 'لوحة التحكم',  icon: LayoutDashboard, href: '/' },
+    { name: 'المنتجات',   icon: Package,         href: '/products' },
+    { name: 'التصنيفات', icon: Layers,          href: '/categories' },
+    { name: 'العملاء',  icon: Users,           href: '/customers' },
+    { name: 'الطلبات',     icon: ClipboardList,   href: '/orders' },
+    { name: 'الموردين',  icon: Truck,           href: '/suppliers' },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -30,30 +32,35 @@ export default function Sidebar({ collapsed, onToggle }) {
 
     return (
         <aside
-            style={{ backgroundColor: '#F4F3EF' }}
             className={`
-                fixed top-0 left-0 z-40 h-screen
-                border-r border-[#E2E0DA]
-                transition-all duration-300 ease-in-out
+                h-full border-l transition-all duration-300 ease-in-out
                 flex flex-col
-                ${collapsed ? 'w-20' : 'w-64'}
+                ${collapsed ? 'w-20' : 'w-60'}
             `}
+            style={{ backgroundColor: '#F4F3EF', borderColor: '#E2E0DA' }}
         >
             {/* Brand */}
-            <div className="flex items-center gap-3 px-5 py-6 border-b border-[#E2E0DA]">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: '#2E5A44' }}>
+            <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: '#E2E0DA' }}>
+                <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: '#2E5A44' }}
+                >
                     <Leaf className="w-5 h-5 text-white" />
                 </div>
                 {!collapsed && (
-                    <div className="animate-fade-in">
-                        <h1 className="text-lg font-bold tracking-tight" style={{ color: '#1A2D23' }}>QuickPOS</h1>
-                        <p className="text-[10px] uppercase tracking-widest" style={{ color: '#9A978F' }}>Point of Sale</p>
+                    <div className="animate-fade-in min-w-0 text-right">
+                        <h1 className="text-base font-bold tracking-tight leading-tight" style={{ color: '#2E5A44' }}>
+                            أبو الدهب
+                        </h1>
+                        <p className="text-[10px] uppercase tracking-widest" style={{ color: '#9A978F' }}>
+                            منظومة الإدارة
+                        </p>
                     </div>
                 )}
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 py-5 px-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
                 {navItems.map((item) => {
                     const active = isActive(item.href)
                     return (
@@ -62,49 +69,73 @@ export default function Sidebar({ collapsed, onToggle }) {
                             href={item.href}
                             className={`
                                 group flex items-center gap-3 px-3 py-2.5 rounded-xl
-                                transition-all duration-200 relative
+                                transition-all duration-200
                                 ${collapsed ? 'justify-center' : ''}
                             `}
                             style={active
-                                ? { backgroundColor: '#E8EBE9', color: '#2E5A44' }
-                                : { color: '#7C7870' }
+                                ? { backgroundColor: '#D5E6DC', color: '#2E5A44' }
+                                : { color: '#5C5950' }
                             }
+                            onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = '#EAE8E2' }}
+                            onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = 'transparent' }}
                             title={collapsed ? item.name : undefined}
                         >
                             <item.icon
                                 className="w-5 h-5 flex-shrink-0 transition-colors"
-                                style={{ color: active ? '#2E5A44' : '#9A978F' }}
+                                style={{ color: active ? '#2E5A44' : '#7C7870' }}
                             />
                             {!collapsed && (
-                                <span className="text-sm font-semibold animate-fade-in">
+                                <span className={`text-sm animate-fade-in ${active ? 'font-bold' : 'font-medium'}`}>
                                     {item.name}
                                 </span>
-                            )}
-                            {active && !collapsed && (
-                                <div className="absolute right-3 w-1.5 h-1.5 rounded-full animate-scale-in" style={{ backgroundColor: '#2E5A44' }} />
                             )}
                         </Link>
                     )
                 })}
             </nav>
 
-            {/* Collapse Toggle */}
-            <div className="p-3 border-t border-[#E2E0DA]">
-                <button
-                    onClick={onToggle}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#E8EBE9]"
-                    style={{ color: '#9A978F' }}
+            {/* Bottom Section */}
+            <div className="px-3 pb-3 space-y-1">
+                {/* New Order CTA */}
+                <Link
+                    href="/pos"
+                    className={`
+                        flex items-center justify-center gap-2 py-3 rounded-xl
+                        font-bold text-sm text-white transition-all duration-200
+                        hover:opacity-90 active:scale-[0.97] shadow-md
+                        ${collapsed ? 'px-2' : 'px-4'}
+                    `}
+                    style={{ backgroundColor: '#2E5A44', boxShadow: '0 4px 12px rgba(46,90,68,0.3)' }}
                 >
-                    {collapsed ? (
-                        <ChevronRight className="w-5 h-5" />
-                    ) : (
+                    <Plus className="w-5 h-5" />
+                    {!collapsed && <span>طلب جديد</span>}
+                </Link>
+
+                <div className="pt-2 border-t mt-2 space-y-0.5" style={{ borderColor: '#E2E0DA' }}>
+                    {!collapsed && (
                         <>
-                            <ChevronLeft className="w-5 h-5" />
-                            <span className="text-sm font-medium">Collapse</span>
+                            <button
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-[#EAE8E2]"
+                                style={{ color: '#7C7870' }}
+                            >
+                                <HelpCircle className="w-4.5 h-4.5" style={{ color: '#9A978F' }} />
+                                مركز المساعدة
+                            </button>
+                            <Link
+                                href="/auth/logout"
+                                method="post"
+                                as="button"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-[#EAE8E2] text-right"
+                                style={{ color: '#7C7870' }}
+                            >
+                                <LogOut className="w-4.5 h-4.5" style={{ color: '#9A978F' }} />
+                                تسجيل الخروج
+                            </Link>
                         </>
                     )}
-                </button>
+                </div>
             </div>
         </aside>
     )
 }
+
