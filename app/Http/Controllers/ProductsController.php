@@ -125,10 +125,14 @@ class ProductsController extends Controller
 
     public function destroy($id){
         $product = Product::findOrFail($id);
-        $product->clearMediaCollection('products');
-        $product->delete();
-        
-        session()->flash('success', 'تم حذف المنتج بنجاح!');
+        try {
+            $product->clearMediaCollection('products');
+            $product->delete();
+            session()->flash('success', 'تم حذف المنتج بنجاح!');
+        } catch (\Exception $e) {
+            \Log::error("Failed to delete product {$id}: " . $e->getMessage());
+            session()->flash('error', 'حدث خطأ أثناء حذف المنتج: ' . $e->getMessage());
+        }
         return redirect()->route('products');
     }
 }

@@ -60,10 +60,14 @@ class CategoriesController extends Controller
             return redirect()->route('categories');
         }   
 
-        $category->clearMediaCollection('categories');
-        $category->delete();
-
-        session()->flash('success', 'تم حذف التصنيف بنجاح!');
+        try {
+            $category->clearMediaCollection('categories');
+            $category->delete();
+            session()->flash('success', 'تم حذف التصنيف بنجاح!');
+        } catch (\Exception $e) {
+            \Log::error("Failed to delete category {$id}: " . $e->getMessage());
+            session()->flash('error', 'حدث خطأ أثناء حذف التصنيف: ' . $e->getMessage());
+        }
         return redirect()->route('categories');
     }
 

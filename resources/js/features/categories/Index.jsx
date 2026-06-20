@@ -6,6 +6,20 @@ import { Plus, Edit2, Trash2, X, Image as ImageIcon, UploadCloud } from 'lucide-
 
 export default function CategoriesIndex({ categories, filters }) {
     const { flash } = usePage().props
+    const [alert, setAlert] = useState(null)
+
+    useEffect(() => {
+        if (flash?.success) {
+            setAlert({ type: 'success', message: flash.success })
+            const timer = setTimeout(() => setAlert(null), 4000)
+            return () => clearTimeout(timer)
+        } else if (flash?.error) {
+            setAlert({ type: 'error', message: flash.error })
+            const timer = setTimeout(() => setAlert(null), 8000)
+            return () => clearTimeout(timer)
+        }
+    }, [flash])
+
     const [search, setSearch] = useState(filters?.search || '')
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [editingCategory, setEditingCategory] = useState(null)
@@ -86,14 +100,22 @@ export default function CategoriesIndex({ categories, filters }) {
         <AppLayout title="تصنيفات المخزون" subtitle="إدارة وتصنيف المنتجات لسهولة الوصول والمبيعات">
             <div className="space-y-5" dir="rtl">
                 {/* Status/Flash Alerts */}
-                {flash?.error && (
-                    <div className="p-4 rounded-xl text-sm font-semibold text-center bg-[#FDEEEC] text-[#922B21] border border-[#E8A09A]">
-                        {flash.error}
-                    </div>
-                )}
-                {flash?.success && (
-                    <div className="p-4 rounded-xl text-sm font-semibold text-center bg-[#EBF5EF] text-[#2E5A44] border border-[#ADCBBB]">
-                        {flash.success}
+                {alert && (
+                    <div 
+                        className="p-4 rounded-xl text-sm font-semibold text-center border transition-all animate-fade-in relative flex items-center justify-between gap-4"
+                        style={{
+                            backgroundColor: alert.type === 'success' ? '#EBF5EF' : '#FDEEEC',
+                            borderColor: alert.type === 'success' ? '#ADCBBB' : '#E8A09A',
+                            color: alert.type === 'success' ? '#2E5A44' : '#922B21'
+                        }}
+                    >
+                        <span className="flex-1 text-right">{alert.message}</span>
+                        <button 
+                            onClick={() => setAlert(null)}
+                            className="opacity-70 hover:opacity-100 transition-opacity"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
                 )}
 

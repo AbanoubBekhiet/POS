@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { router, useForm } from '@inertiajs/react'
+import { router, useForm, usePage } from '@inertiajs/react'
 import AppLayout from '../../shared/layouts/AppLayout'
 import { Button, SearchInput } from '../../shared/components'
 import ProductCard from './components/ProductCard'
@@ -7,6 +7,21 @@ import CategoryFilter from './components/CategoryFilter'
 import { Plus, LayoutGrid, List, Edit2, Trash2, X, Image as ImageIcon, UploadCloud } from 'lucide-react'
 
 export default function ProductsIndex({ products = { data: [], current_page: 1, next_page: null }, total_count = 0, categories = [], filters = {} }) {
+    const { flash } = usePage().props
+    const [alert, setAlert] = useState(null)
+
+    useEffect(() => {
+        if (flash?.success) {
+            setAlert({ type: 'success', message: flash.success })
+            const timer = setTimeout(() => setAlert(null), 4000)
+            return () => clearTimeout(timer)
+        } else if (flash?.error) {
+            setAlert({ type: 'error', message: flash.error })
+            const timer = setTimeout(() => setAlert(null), 8000) 
+            return () => clearTimeout(timer)
+        }
+    }, [flash])
+
     const [search, setSearch] = useState(filters?.search || '')
     const [selectedCategory, setSelectedCategory] = useState(filters?.category_id || 'all')
     const [viewMode, setViewMode] = useState('grid')
@@ -181,6 +196,27 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
 
     return (
         <AppLayout title="المنتجات" subtitle={`إجمالي ${total_count || loadedProducts.length} منتج متوفر`}>
+            {/* Status/Flash Alerts */}
+            {alert && (
+                <div 
+                    className="p-4 rounded-xl text-sm font-semibold text-center mb-6 border transition-all animate-fade-in relative flex items-center justify-between gap-4"
+                    style={{
+                        backgroundColor: alert.type === 'success' ? '#EBF5EF' : '#FDEEEC',
+                        borderColor: alert.type === 'success' ? '#ADCBBB' : '#E8A09A',
+                        color: alert.type === 'success' ? '#2E5A44' : '#922B21'
+                    }}
+                    dir="rtl"
+                >
+                    <span className="flex-1 text-right">{alert.message}</span>
+                    <button 
+                        onClick={() => setAlert(null)}
+                        className="opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6" dir="rtl">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">

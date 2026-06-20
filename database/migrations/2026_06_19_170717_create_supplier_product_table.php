@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('supplier_product', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('recieved_order_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('recieved_order_id')->constrained('recieved_order')->cascadeOnDelete();
             $table->integer('quantity');
             $table->decimal('price',10,2);
             $table->decimal('total_price',10,2);
