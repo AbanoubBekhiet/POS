@@ -13,4 +13,7 @@ class Profile extends Model
         'shop_name',
         'category_of_place'
     ];
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }
