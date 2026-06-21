@@ -1,50 +1,100 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { router, usePage } from '@inertiajs/react'
 import AppLayout from '../../shared/layouts/AppLayout'
 import { SearchInput, Button, StatCard } from '../../shared/components'
 import OrderRow from './components/OrderRow'
 import StatusFilter from './components/StatusFilter'
-import { Download, Filter, DollarSign, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react'
+import { Download, DollarSign, CheckCircle2, AlertCircle, ShoppingBag, X } from 'lucide-react'
 
-const sampleOrders = [
-    { id: '#ORD-2847', customer: 'أحمد حسن',   email: 'ahmed@email.com',   items: 3, total: '42.50 د.إ', status: 'completed',  date: '15 يونيو 2026' },
-    { id: '#ORD-2846', customer: 'سارة علي',        email: 'sara@email.com',    items: 2, total: '28.00 د.إ', status: 'processing', date: '15 يونيو 2026' },
-    { id: '#ORD-2845', customer: 'محمد يوسف', email: 'mohamed@email.com', items: 5, total: '67.80 د.إ', status: 'completed',  date: '14 يونيو 2026' },
-    { id: '#ORD-2844', customer: 'فاطمة إبراهيم',   email: 'fatma@email.com',   items: 1, total: '12.99 د.إ', status: 'pending',    date: '14 يونيو 2026' },
-    { id: '#ORD-2843', customer: 'عمر خالد',     email: 'omar@email.com',    items: 4, total: '55.20 د.إ', status: 'cancelled',  date: '13 يونيو 2026' },
-    { id: '#ORD-2842', customer: 'نور محمود',    email: 'nour@email.com',    items: 2, total: '31.00 د.إ', status: 'delivered',  date: '13 يونيو 2026' },
-    { id: '#ORD-2841', customer: 'يارا سيد',      email: 'yara@email.com',    items: 6, total: '89.40 د.إ', status: 'completed',  date: '12 يونيو 2026' },
-    { id: '#ORD-2840', customer: 'كريم عادل',      email: 'karim@email.com',   items: 3, total: '45.00 د.إ', status: 'processing', date: '12 يونيو 2026' },
+const STATUS_OPTIONS = [
+    { value: 'all',        label: 'كل الطلبات' },
+    { value: 'pending',    label: 'معلق' },
+    { value: 'processing', label: 'قيد المعالجة' },
+    { value: 'completed',  label: 'مكتمل' },
+    { value: 'delivered',  label: 'تم التوصيل' },
+    { value: 'cancelled',  label: 'ملغي' },
 ]
 
-const buildStatuses = (orders) => [
-    { value: 'all',        label: 'كل الطلبات',  count: orders.length },
-    { value: 'pending',    label: 'معلق',     count: orders.filter(o => o.status === 'pending').length },
-    { value: 'processing', label: 'قيد المعالجة',  count: orders.filter(o => o.status === 'processing').length },
-    { value: 'completed',  label: 'مكتمل',   count: orders.filter(o => o.status === 'completed').length },
-    { value: 'delivered',  label: 'تم التوصيل',   count: orders.filter(o => o.status === 'delivered').length },
-    { value: 'cancelled',  label: 'ملغي',   count: orders.filter(o => o.status === 'cancelled').length },
-]
+export default function OrdersIndex({
+    orders = { data: [], current_page: 1, next_page: null },
+    stats = { today_total: '0.00 ج.م', completed_today: 0, pending_count: 0, total_orders: 0 },
+    filters = {},
+}) {
+    const { flash } = usePage().props
+    const [alert, setAlert] = useState(null)
 
-export default function OrdersIndex() {
-    const [search, setSearch]               = useState('')
-    const [selectedStatus, setSelectedStatus] = useState('all')
+    useEffect(() => {
+        if (flash?.success) {
+            setAlert({ type: 'success', message: flash.success })
+            const t = setTimeout(() => setAlert(null), 4000)
+            return () => clearTimeout(t)
+        } else if (flash?.error) {
+            setAlert({ type: 'error', message: flash.error })
+            const t = setTimeout(() => setAlert(null), 8000)
+            return () => clearTimeout(t)
+        }
+    }, [flash])
 
-    const filtered = sampleOrders.filter((o) => {
-        const matchesSearch  = o.customer.toLowerCase().includes(search.toLowerCase()) || o.id.toLowerCase().includes(search.toLowerCase())
-        const matchesStatus  = selectedStatus === 'all' || o.status === selectedStatus
-        return matchesSearch && matchesStatus
-    })
+    const [search, setSearch] = useState(filters?.search || '')
+    const [selectedStatus, setSelectedStatus] = useState(filters?.status || 'all')
+
+    // Backend filtering
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const params = {}
+            if (search) params.search = search
+            if (selectedStatus && selectedStatus !== 'all') params.status = selectedStatus
+
+            router.get('/orders', params, { preserveState: true, replace: true })
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [search, selectedStatus])
+
+    const handleStatusChange = (orderId, newStatus) => {
+        router.put(`/orders/${orderId}`, { status: newStatus }, { preserveScroll: true })
+    }
+
+    const handleDelete = (orderId) => {
+        if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+            router.delete(`/orders/${orderId}`, { preserveScroll: true })
+        }
+    }
+
+    const statuses = STATUS_OPTIONS.map(s => ({
+        ...s,
+        count: s.value === 'all'
+            ? orders.data.length
+            : orders.data.filter(o => o.status === s.value).length
+    }))
 
     const thStyle = { color: '#B8B5AE', borderBottom: '1px solid #EAE8E2', backgroundColor: '#FAF9F6' }
 
     return (
-        <AppLayout title="إدارة الطلبات" subtitle="متابعة وإدارة جميع معاملات المبيعات بنقاط البيع">
+        <AppLayout title="إدارة الطلبات" subtitle="متابعة وإدارة جميع معاملات المبيعات">
+            {/* Flash Alert */}
+            {alert && (
+                <div
+                    className="p-4 rounded-xl text-sm font-semibold border transition-all animate-fade-in relative flex items-center justify-between gap-4 mb-6"
+                    style={{
+                        backgroundColor: alert.type === 'success' ? '#EBF5EF' : '#FDEEEC',
+                        borderColor: alert.type === 'success' ? '#ADCBBB' : '#E8A09A',
+                        color: alert.type === 'success' ? '#2E5A44' : '#922B21'
+                    }}
+                    dir="rtl"
+                >
+                    <span className="flex-1 text-right">{alert.message}</span>
+                    <button onClick={() => setAlert(null)} className="opacity-70 hover:opacity-100 transition-opacity">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" dir="rtl">
-                <StatCard title="إجمالي مبيعات اليوم" value="1,840 د.إ" change={8.4} changeLabel="مقارنة بأمس" icon={DollarSign} color="green" />
-                <StatCard title="طلبات مكتملة" value="45 طلب" change={12.1} changeLabel="مقارنة بأمس" icon={CheckCircle2} color="teal" />
-                <StatCard title="طلبات معلقة" value="3 طلبات" change={-15} changeLabel="مقارنة بأمس" icon={AlertCircle} color="amber" />
-                <StatCard title="إجمالي الطلبات" value="1,257 طلب" change={4.2} changeLabel="مقارنة بالشهر الماضي" icon={ShoppingBag} color="green" />
+                <StatCard title="مبيعات اليوم" value={stats.today_total} icon={DollarSign} color="green" />
+                <StatCard title="طلبات مكتملة اليوم" value={`${stats.completed_today} طلب`} icon={CheckCircle2} color="teal" />
+                <StatCard title="طلبات معلقة" value={`${stats.pending_count} طلب`} icon={AlertCircle} color="amber" />
+                <StatCard title="إجمالي الطلبات" value={`${stats.total_orders} طلب`} icon={ShoppingBag} color="green" />
             </div>
 
             {/* Toolbar */}
@@ -57,11 +107,10 @@ export default function OrdersIndex() {
                         className="sm:w-72"
                     />
                     <div className="flex items-center gap-2">
-                        <Button variant="secondary" icon={Filter}>تصفية</Button>
                         <Button variant="secondary" icon={Download}>تصدير</Button>
                     </div>
                 </div>
-                <StatusFilter statuses={buildStatuses(sampleOrders)} selected={selectedStatus} onChange={setSelectedStatus} />
+                <StatusFilter statuses={statuses} selected={selectedStatus} onChange={setSelectedStatus} />
             </div>
 
             {/* Table */}
@@ -77,37 +126,60 @@ export default function OrdersIndex() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map(order => <OrderRow key={order.id} order={order} />)}
+                            {orders.data.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="px-6 py-12 text-center text-sm font-semibold text-[#9A978F]">
+                                        لا توجد طلبات مطابقة للبحث
+                                    </td>
+                                </tr>
+                            ) : (
+                                orders.data.map(order => (
+                                    <OrderRow
+                                        key={order.raw_id}
+                                        order={order}
+                                        onStatusChange={(newStatus) => handleStatusChange(order.raw_id, newStatus)}
+                                        onDelete={() => handleDelete(order.raw_id)}
+                                    />
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Mobile */}
                 <div className="sm:hidden">
-                    {filtered.map(order => <OrderRow key={order.id} order={order} />)}
+                    {orders.data.map(order => (
+                        <OrderRow
+                            key={order.raw_id}
+                            order={order}
+                            onStatusChange={(newStatus) => handleStatusChange(order.raw_id, newStatus)}
+                            onDelete={() => handleDelete(order.raw_id)}
+                        />
+                    ))}
+                    {orders.data.length === 0 && (
+                        <div className="p-8 text-center text-sm font-semibold text-[#9A978F]">لا توجد طلبات</div>
+                    )}
                 </div>
 
-                {/* Pagination */}
+                {/* Footer */}
                 <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #EAE8E2' }}>
                     <p className="text-sm" style={{ color: '#9A978F' }}>
-                        عرض <span className="font-semibold" style={{ color: '#1A2D23' }}>{filtered.length}</span> طلبات
+                        عرض <span className="font-semibold" style={{ color: '#1A2D23' }}>{orders.data.length}</span> طلب
                     </p>
-                    <div className="flex items-center gap-1">
-                        {['التالي', '3', '2', '1', 'السابق'].map((p, i) => (
-                            <button
-                                key={p}
-                                className="px-3 py-1.5 text-sm rounded-lg transition-colors"
-                                style={p === '1'
-                                    ? { backgroundColor: '#2E5A44', color: '#fff' }
-                                    : { border: '1px solid #D6D4CE', color: '#7C7870', backgroundColor: '#FFFFFF' }
-                                }
-                                onMouseEnter={e => { if (p !== '1') e.currentTarget.style.backgroundColor = '#EAE8E2' }}
-                                onMouseLeave={e => { if (p !== '1') e.currentTarget.style.backgroundColor = '#FFFFFF' }}
-                            >
-                                {p}
-                            </button>
-                        ))}
-                    </div>
+                    {orders.next_page && (
+                        <button
+                            onClick={() => {
+                                const params = { page: orders.next_page }
+                                if (search) params.search = search
+                                if (selectedStatus && selectedStatus !== 'all') params.status = selectedStatus
+                                router.get('/orders', params, { preserveState: true, preserveScroll: true })
+                            }}
+                            className="px-4 py-1.5 text-sm rounded-lg border font-semibold transition-colors hover:bg-[#EEF4F1]"
+                            style={{ borderColor: '#2E5A44', color: '#2E5A44' }}
+                        >
+                            تحميل المزيد
+                        </button>
+                    )}
                 </div>
             </div>
         </AppLayout>

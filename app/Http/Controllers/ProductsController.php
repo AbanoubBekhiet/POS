@@ -135,4 +135,113 @@ class ProductsController extends Controller
         }
         return redirect()->route('products');
     }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:5120',
+        ]);
+
+        $file = $request->file('file');
+
+        try {
+            $sheets = \Maatwebsite\Excel\Facades\Excel::toArray([], $file);
+            $rows = $sheets[0] ?? [];
+            if (empty($rows)) {
+                session()->flash('error', 'الملف فارغ أو غير صالح!');
+                return redirect()->back();
+            }
+
+            // Read header row
+            $header = array_shift($rows);
+
+            // Clean headers (remove BOM or spaces)
+            $header = array_map(function($h) {
+                return trim(preg_replace('/[\x00-\x1F\x7F-\x9F\xEF\xBB\xBF]/', '', $h ?? ''));
+            }, $header);
+
+            // Required headers mapping
+            // name/الاسم, price/السعر, category/التصنيف, stock/المخزون, unit/الوحدة, items_in_unit/القطع داخل الوحدة, description/الوصف
+            $map = [];
+            foreach ($header as $index => $col) {
+                $colLower = strtolower($col);
+                if ($colLower === 'name' || $col === 'الاسم' || $col === 'اسم المنتج') {
+                    $map['name'] = $index;
+                } elseif ($colLower === 'price' || $col === 'السعر' || $col === 'سعر البيع') {
+                    $map['price'] = $index;
+                } elseif ($colLower === 'category' || $col === 'التصنيف' || $col === 'القسم') {
+                    $map['category'] = $index;
+                } elseif ($colLower === 'stock' || $col === 'المخزون' || $col === 'الكمية') {
+                    $map['stock'] = $index;
+                } elseif ($colLower === 'unit' || $col === 'الوحدة') {
+                    $map['unit'] = $index;
+                } elseif ($colLower === 'number_of_items_in_unit' || $colLower === 'items_in_unit' || $col === 'القطع داخل الوحدة' || $col === 'عدد القطع') {
+                    $map['number_of_items_in_unit'] = $index;
+                } elseif ($colLower === 'description' || $col === 'الوصف' || $col === 'تفاصيل') {
+                    $map['description'] = $index;
+                }
+            }
+
+            // Validate headers: name, price, and category are required
+            if (!isset($map['name']) || !isset($map['price']) || !isset($map['category'])) {
+                session()->flash('error', 'تنسيق الملف غير صحيح! يجب أن يحتوي الملف على أعمدة: "الاسم"، "السعر"، و "التصنيف" (أو "name"، "price"، و "category").');
+                return redirect()->back();
+            }
+
+            $imported = 0;
+            $skipped = 0;
+            $validUnits = ['شكارة', 'علبة', 'كرتونة', 'شريط', 'دستة', 'لفة'];
+
+            \Illuminate\Support\Facades\DB::beginTransaction();
+            foreach ($rows as $row) {
+                if (empty($row) || !isset($row[$map['name']]) || !isset($row[$map['price']]) || !isset($row[$map['category']])) {
+                    $skipped++;
+                    continue;
+                }
+
+                $name = trim($row[$map['name']] ?? '');
+                $priceInput = trim($row[$map['price']] ?? '');
+                $price = floatval($priceInput);
+                $categoryName = trim($row[$map['category']] ?? '');
+
+                if (!$name || !$priceInput || !$categoryName) {
+                    $skipped++;
+                    continue;
+                }
+
+                $stock = isset($map['stock']) && isset($row[$map['stock']]) ? intval(trim($row[$map['stock']] ?? '0')) : 0;
+                $unit = isset($map['unit']) && isset($row[$map['unit']]) ? trim($row[$map['unit']] ?? '') : 'علبة';
+                if (!in_array($unit, $validUnits)) {
+                    $unit = 'علبة'; // default back to valid enum value
+                }
+                $numberOfItems = isset($map['number_of_items_in_unit']) && isset($row[$map['number_of_items_in_unit']]) ? intval(trim($row[$map['number_of_items_in_unit']] ?? '1')) : 1;
+                $description = isset($map['description']) && isset($row[$map['description']]) ? trim($row[$map['description']] ?? '') : null;
+
+                // Find or create category
+                $category = Category::firstOrCreate(['name' => $categoryName]);
+
+                Product::create([
+                    'name' => $name,
+                    'price' => $price,
+                    'stock' => $stock,
+                    'unit' => $unit,
+                    'number_of_items_in_unit' => $numberOfItems,
+                    'category_id' => $category->id,
+                    'description' => $description,
+                ]);
+
+                $imported++;
+            }
+            \Illuminate\Support\Facades\DB::commit();
+            session()->flash('success', "تم استيراد {$imported} منتج بنجاح! تم تخطي {$skipped} منتجات بسبب بيانات غير مكتملة.");
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Log::error("Failed to import products: " . $e->getMessage());
+            session()->flash('error', 'حدث خطأ أثناء استيراد المنتجات: ' . $e->getMessage());
+        }
+
+        return redirect()->route('products');
+    }
+
 }
+

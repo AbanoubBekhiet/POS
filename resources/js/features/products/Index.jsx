@@ -4,7 +4,7 @@ import AppLayout from '../../shared/layouts/AppLayout'
 import { Button, SearchInput } from '../../shared/components'
 import ProductCard from './components/ProductCard'
 import CategoryFilter from './components/CategoryFilter'
-import { Plus, LayoutGrid, List, Edit2, Trash2, X, Image as ImageIcon, UploadCloud } from 'lucide-react'
+import { Plus, LayoutGrid, List, Edit2, Trash2, X, Image as ImageIcon, UploadCloud, Info } from 'lucide-react'
 
 export default function ProductsIndex({ products = { data: [], current_page: 1, next_page: null }, total_count = 0, categories = [], filters = {} }) {
     const { flash } = usePage().props
@@ -29,6 +29,8 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [editingProduct, setEditingProduct] = useState(null)
     const [imagePreview, setImagePreview] = useState(null)
+    const [isImportOpen, setIsImportOpen] = useState(false)
+    const [importFile, setImportFile] = useState(null)
 
     // Infinite Scroll States
     const [loadedProducts, setLoadedProducts] = useState(products.data || [])
@@ -54,16 +56,18 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
     // Backend filtering (resets to page 1)
     useEffect(() => {
         const timer = setTimeout(() => {
-            const queryParams = { page: 1 }
-            if (search) queryParams.search = search
-            if (selectedCategory && selectedCategory !== 'all') {
-                queryParams.category_id = selectedCategory
+            if (search !== (filters?.search || '') || selectedCategory !== (filters?.category_id || 'all')) {
+                const queryParams = { page: 1 }
+                if (search) queryParams.search = search
+                if (selectedCategory && selectedCategory !== 'all') {
+                    queryParams.category_id = selectedCategory
+                }
+                
+                router.get('/products', queryParams, { 
+                    preserveState: true,
+                    replace: true
+                })
             }
-            
-            router.get('/products', queryParams, { 
-                preserveState: true,
-                replace: true
-            })
         }, 300)
         return () => clearTimeout(timer)
     }, [search, selectedCategory])
@@ -194,6 +198,21 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
         }
     }
 
+    const handleImportSubmit = (e) => {
+        e.preventDefault()
+        if (!importFile) return
+
+        const formData = new FormData()
+        formData.append('file', importFile)
+
+        router.post('/products/import', formData, {
+            onSuccess: () => {
+                setIsImportOpen(false)
+                setImportFile(null)
+            }
+        })
+    }
+
     return (
         <AppLayout title="المنتجات" subtitle={`إجمالي ${total_count || loadedProducts.length} منتج متوفر`}>
             {/* Status/Flash Alerts */}
@@ -248,6 +267,13 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                             <List className="w-4 h-4" />
                         </button>
                     </div>
+                    <button
+                        onClick={() => setIsImportOpen(true)}
+                        className="px-4 py-2.5 rounded-xl font-bold text-sm border border-[#2E5A44] text-[#2E5A44] transition-all hover:bg-[#EEF4F1] active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <UploadCloud className="w-4 h-4" />
+                        استيراد (CSV)
+                    </button>
                     <Button icon={Plus} onClick={openAddModal}>إضافة منتج</Button>
                 </div>
             </div>
@@ -672,6 +698,69 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                                     style={{ color: '#5C5950' }}
                                 >
                                     إلغاء
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Import Excel/CSV Modal */}
+            {isImportOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-[#EAE8E2] shadow-2xl">
+                        <div className="px-6 py-4 border-b border-[#FAF9F6] flex items-center justify-between bg-[#FAF9F6]">
+                            <h3 className="font-bold text-lg text-[#1A2D23] flex items-center gap-2">
+                                <UploadCloud className="w-5 h-5 text-primary-600" />
+                                استيراد منتجات من ملف إكسل (CSV)
+                            </h3>
+                            <button onClick={() => setIsImportOpen(false)} className="p-1 rounded-lg hover:bg-white transition-colors">
+                                <X className="w-5 h-5 text-[#9A978F]" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleImportSubmit} className="p-6 space-y-4">
+                            <div className="bg-[#FAF9F6] border border-[#EAE8E2] p-4 rounded-xl space-y-2 text-right">
+                                <h4 className="font-bold text-xs text-[#1A2D23] flex items-center gap-1.5 justify-end">
+                                    <span>تعليمات هامة للاستيراد</span>
+                                    <Info className="w-4 h-4 text-primary-600" />
+                                </h4>
+                                <p className="text-xs text-[#7C7870] leading-relaxed font-semibold">
+                                    يرجى حفظ ملف الإكسل بصيغة <strong>CSV (Comma Delimited)</strong> قبل رفعه. يجب أن يحتوي الصف الأول على الأسماء التالية للأعمدة:
+                                </p>
+                                <div className="bg-white p-2 rounded-lg border border-[#EAE8E2] text-xs font-mono text-center select-all block overflow-x-auto whitespace-nowrap">
+                                    الاسم, السعر, التصنيف, المخزون, الوحدة, القطع داخل الوحدة, الوصف
+                                </div>
+                                <p className="text-[10px] text-[#9A978F]">
+                                    * أعمدة "الاسم"، "السعر"، و "التصنيف" مطلوبة بشكل أساسي لإتمام عملية الاستيراد. إذا كان التصنيف غير موجود، فسيقوم النظام بإنشائه تلقائياً.
+                                </p>
+                            </div>
+
+                            <div className="space-y-1 text-right">
+                                <label className="text-xs font-bold text-[#7C7870]">اختر ملف CSV</label>
+                                <input
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    onChange={e => setImportFile(e.target.files[0])}
+                                    className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#FAF9F6]">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsImportOpen(false)}
+                                    className="px-4 py-2 border border-[#EAE8E2] rounded-xl text-sm font-bold text-[#7C7870] hover:bg-[#FAF9F6]"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!importFile}
+                                    className="px-5 py-2 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50"
+                                    style={{ backgroundColor: '#2E5A44' }}
+                                >
+                                    بدء الاستيراد
                                 </button>
                             </div>
                         </form>

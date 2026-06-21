@@ -1,15 +1,19 @@
+import { useState } from 'react'
 import { Badge } from '../../../shared/components'
-import { Eye, MoreHorizontal, Printer } from 'lucide-react'
+import { Trash2, ChevronDown } from 'lucide-react'
 
 const statusMap = {
-    completed:  { variant: 'success', label: 'مكتمل'  },
+    completed:  { variant: 'success', label: 'مكتمل' },
     processing: { variant: 'info',    label: 'قيد المعالجة' },
-    pending:    { variant: 'warning', label: 'معلق'    },
-    cancelled:  { variant: 'danger',  label: 'ملغي'  },
-    delivered:  { variant: 'success', label: 'تم التوصيل'  },
+    pending:    { variant: 'warning', label: 'معلق' },
+    cancelled:  { variant: 'danger',  label: 'ملغي' },
+    delivered:  { variant: 'success', label: 'تم التوصيل' },
 }
 
-export default function OrderRow({ order }) {
+const STATUS_OPTIONS = ['pending', 'processing', 'completed', 'delivered', 'cancelled']
+
+export default function OrderRow({ order, onStatusChange, onDelete }) {
+    const [showStatusMenu, setShowStatusMenu] = useState(false)
     const status = statusMap[order.status] || statusMap.pending
 
     return (
@@ -42,16 +46,57 @@ export default function OrderRow({ order }) {
                 <td className="px-6 py-4 text-sm text-right" style={{ color: '#7C7870' }}>{order.items} منتجات</td>
                 <td className="px-6 py-4 text-sm font-bold text-right" style={{ color: '#1A2D23' }}>{order.total}</td>
                 <td className="px-6 py-4 text-right">
-                    <Badge variant={status.variant} dot>{status.label}</Badge>
+                    {/* Status dropdown */}
+                    {onStatusChange ? (
+                        <div className="relative inline-block">
+                            <button
+                                onClick={() => setShowStatusMenu(!showStatusMenu)}
+                                className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border transition-colors hover:opacity-80"
+                                style={{ borderColor: '#EAE8E2' }}
+                            >
+                                <Badge variant={status.variant} dot>{status.label}</Badge>
+                                <ChevronDown className="w-3 h-3 text-[#9A978F]" />
+                            </button>
+                            {showStatusMenu && (
+                                <div
+                                    className="absolute top-full mt-1 right-0 bg-white border border-[#EAE8E2] rounded-xl shadow-xl z-10 min-w-[140px] overflow-hidden"
+                                    onBlur={() => setShowStatusMenu(false)}
+                                >
+                                    {STATUS_OPTIONS.map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => {
+                                                onStatusChange(s)
+                                                setShowStatusMenu(false)
+                                            }}
+                                            className="w-full text-right px-4 py-2 text-xs font-semibold transition-colors hover:bg-[#FAF9F6]"
+                                            style={{
+                                                color: s === order.status ? '#2E5A44' : '#5C5950',
+                                                backgroundColor: s === order.status ? '#EEF4F1' : 'transparent',
+                                            }}
+                                        >
+                                            {statusMap[s]?.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Badge variant={status.variant} dot>{status.label}</Badge>
+                    )}
                 </td>
                 <td className="px-6 py-4 text-sm text-right" style={{ color: '#B8B5AE' }}>{order.date}</td>
                 <td className="px-6 py-4 text-left">
                     <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        {[Eye, Printer, MoreHorizontal].map((Icon, i) => (
-                            <button key={i} className="p-1.5 rounded-lg transition-colors hover:bg-[#EAE8E2]">
-                                <Icon className="w-4 h-4" style={{ color: '#B8B5AE' }} />
+                        {onDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="p-1.5 rounded-lg transition-colors hover:bg-[#FDEEEC] hover:text-[#C0392B]"
+                                title="حذف الطلب"
+                            >
+                                <Trash2 className="w-4 h-4" style={{ color: '#B8B5AE' }} />
                             </button>
-                        ))}
+                        )}
                     </div>
                 </td>
             </tr>
@@ -75,11 +120,16 @@ export default function OrderRow({ order }) {
                             <p className="text-xs" style={{ color: '#B8B5AE' }}>{order.id} · {order.date}</p>
                         </div>
                     </div>
-                    <button className="p-1.5 rounded-lg hover:bg-[#EAE8E2] transition-colors">
-                        <MoreHorizontal className="w-4 h-4" style={{ color: '#B8B5AE' }} />
-                    </button>
+                    {onDelete && (
+                        <button
+                            onClick={onDelete}
+                            className="p-1.5 rounded-lg hover:bg-[#FDEEEC] transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4 text-[#B8B5AE]" />
+                        </button>
+                    )}
                 </div>
-                <div className="flex items-center justify-between mt-3 ml-13 flex-row-reverse">
+                <div className="flex items-center justify-between mt-3 flex-row-reverse">
                     <div className="flex items-center gap-3">
                         <span className="text-sm font-bold" style={{ color: '#1A2D23' }}>{order.total}</span>
                         <span className="text-xs" style={{ color: '#B8B5AE' }}>{order.items} منتجات</span>
