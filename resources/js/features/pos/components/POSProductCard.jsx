@@ -22,7 +22,7 @@ export default function POSProductCard({ product, onAdd }) {
                     <p className="text-xs text-[#9A978F] mt-0.5">{product.category}</p>
                 </div>
                 <div className="text-left flex-shrink-0">
-                    <p className="text-sm font-bold text-[#2E5A44]">{product.price.toFixed(2)} د.إ</p>
+                    <p className="text-sm font-bold text-[#2E5A44]">{product.price.toFixed(2)} ج</p>
                     {product.stock <= 5 && product.stock > 0 && (
                         <p className="text-[10px] text-[#D4A017] font-semibold">بقي {product.stock} فقط</p>
                     )}

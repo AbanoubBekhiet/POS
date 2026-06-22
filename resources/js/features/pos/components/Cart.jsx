@@ -4,9 +4,7 @@ import { Button } from '../../../shared/components'
 import { ShoppingBag, CreditCard, Banknote, Trash2, User, Pause } from 'lucide-react'
 
 export default function Cart({ items, onIncrement, onDecrement, onRemove, onClear, onCheckout, onHold }) {
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const tax = subtotal * 0.14
-    const total = subtotal + tax
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const [selectedCustomer, setSelectedCustomer] = useState('cash')
 
     const customers = [
@@ -91,39 +89,14 @@ export default function Cart({ items, onIncrement, onDecrement, onRemove, onClea
             {items.length > 0 && (
                 <div className="border-t border-[#EAE8E2] p-5 space-y-4">
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm flex-row-reverse">
-                            <span className="text-[#7C7870]">المجموع الفرعي</span>
-                            <span className="font-semibold text-[#1A2D23]">{subtotal.toFixed(2)} د.إ</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm flex-row-reverse">
-                            <span className="text-[#7C7870]">الضريبة (14%)</span>
-                            <span className="font-semibold text-[#1A2D23]">{tax.toFixed(2)} د.إ</span>
-                        </div>
-                        <div className="h-px bg-[#EAE8E2] my-2" />
                         <div className="flex items-center justify-between flex-row-reverse">
                             <span className="text-base font-bold text-[#1A2D23]">الإجمالي الكلي</span>
-                            <span className="text-xl font-bold text-[#2E5A44]">{total.toFixed(2)} د.إ</span>
+                            <span className="text-xl font-bold text-[#2E5A44]">{total.toFixed(2)} ج</span>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                onClick={() => onCheckout?.('cash', selectedCustomer)}
-                                className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-150 bg-[#EEF4F1] text-[#2E5A44] border border-[#ADCBBB] hover:bg-[#D5E6DC] active:scale-95"
-                            >
-                                <Banknote className="w-4 h-4" />
-                                نقدي
-                            </button>
-                            <button
-                                onClick={() => onCheckout?.('card', selectedCustomer)}
-                                className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-150 bg-[#2E5A44] text-white hover:opacity-95 active:scale-95"
-                            >
-                                <CreditCard className="w-4 h-4" />
-                                شبكة / فيزا
-                            </button>
-                        </div>
                         <button
                             onClick={() => onHold?.(selectedCustomer)}
                             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all duration-150 bg-[#FAF9F6] border border-[#D6D4CE] text-[#5C5950] hover:bg-[#EAE8E2] active:scale-95"

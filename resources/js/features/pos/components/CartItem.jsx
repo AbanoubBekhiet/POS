@@ -3,18 +3,15 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 export default function CartItem({ item, onIncrement, onDecrement, onRemove }) {
     return (
         <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#FAF9F6] transition-colors group" dir="rtl">
-            {/* Emoji / Image */}
             <div className="w-10 h-10 rounded-lg bg-[#FAF9F6] border border-[#EAE8E2] flex items-center justify-center flex-shrink-0 text-lg">
                 {item.emoji || '📦'}
             </div>
 
-            {/* Info */}
             <div className="flex-1 min-w-0 text-right">
                 <p className="text-sm font-semibold text-[#1A2D23] truncate">{item.name}</p>
-                <p className="text-xs text-[#9A978F]">{item.price.toFixed(2)} د.إ للوحدة</p>
+                <p className="text-xs text-[#9A978F]">{item.price.toFixed(2)} ج للوحدة</p>
             </div>
 
-            {/* Quantity Controls */}
             <div className="flex items-center gap-1.5 flex-row-reverse">
                 <button
                     onClick={() => onDecrement(item.id)}
@@ -31,10 +28,9 @@ export default function CartItem({ item, onIncrement, onDecrement, onRemove }) {
                 </button>
             </div>
 
-            {/* Subtotal + Remove */}
             <div className="flex items-center gap-2 flex-row-reverse">
                 <span className="text-sm font-bold text-[#1A2D23] w-20 text-left">
-                    {(item.price * item.quantity).toFixed(2)} د.إ
+                    {(item.price * item.quantity).toFixed(2)} ج
                 </span>
                 <button
                     onClick={() => onRemove(item.id)}

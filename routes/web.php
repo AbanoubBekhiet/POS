@@ -7,7 +7,7 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\OrdersController;
-
+use App\Http\Controllers\posController;
 
 
 Route::get('/', function () {
@@ -25,15 +25,21 @@ Route::prefix('auth')->group(function () {
         Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode'])->name('verify-reset-code.post');
     });
 
-Route::get('/pos', function () {
-    return Inertia::render('pos/Index');    
-});
+Route::get('/pos', [posController::class, 'pos'])->name('pos');
+Route::post('/pos/update-cart-item', [posController::class, 'updateCartItem'])->name('pos.update-cart-item');
+Route::delete('/pos/delete-cart-item/{cartId}', [posController::class, 'deleteCartItem'])->name('pos.delete-cart-item');
+Route::post('/pos/clear-cart/{cartId}', [posController::class, 'clearCart'])->name('pos.clear-cart');
+
+
+
 
 Route::get('/products', [ProductsController::class, 'index'])->name('products');
 Route::post('/products', [ProductsController::class, 'store'])->name('products.store');
 Route::post('/products/import', [ProductsController::class, 'import'])->name('products.import');
 Route::put('/products/{product}', [ProductsController::class, 'update'])->name('products.update');
 Route::delete('/products/{product}', [ProductsController::class, 'destroy'])->name('products.destroy');
+Route::get('/products/filter', [ProductsController::class, 'filter'])->name('products.filter');
+
 
 Route::get('/orders', [OrdersController::class, 'index'])->name('orders');
 Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');

@@ -113,14 +113,6 @@ export default function Sidebar({ collapsed, onToggle }) {
 
                 <div className="pt-2 border-t mt-2 space-y-0.5" style={{ borderColor: '#E2E0DA' }}>
                     {!collapsed && (
-                        <>
-                            <button
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-[#EAE8E2]"
-                                style={{ color: '#7C7870' }}
-                            >
-                                <HelpCircle className="w-4.5 h-4.5" style={{ color: '#9A978F' }} />
-                                مركز المساعدة
-                            </button>
                             <Link
                                 href="/auth/logout"
                                 method="post"
@@ -131,7 +123,6 @@ export default function Sidebar({ collapsed, onToggle }) {
                                 <LogOut className="w-4.5 h-4.5" style={{ color: '#9A978F' }} />
                                 تسجيل الخروج
                             </Link>
-                        </>
                     )}
                 </div>
             </div>

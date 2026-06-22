@@ -11,7 +11,7 @@ export default defineConfig({
         inertia(),
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.jsx'],
-            refresh: true,
+            refresh: false,
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
