@@ -65,9 +65,14 @@ Route::delete('/categories/{category}', [CategoriesController::class, 'destroy']
 
 
 
-Route::get('/suppliers', function () {
-    return Inertia::render('suppliers/Index');
-});
+use App\Http\Controllers\SuppliersController;
+
+Route::get('/suppliers', [SuppliersController::class, 'index'])->name('suppliers');
+Route::post('/suppliers', [SuppliersController::class, 'store'])->name('suppliers.store');
+Route::put('/suppliers/{supplier}', [SuppliersController::class, 'update'])->name('suppliers.update');
+Route::delete('/suppliers/{supplier}', [SuppliersController::class, 'destroy'])->name('suppliers.destroy');
+Route::get('/suppliers/{supplier}/received-orders', [SuppliersController::class, 'receivedOrders'])->name('suppliers.received-orders');
+Route::post('/suppliers/{supplier}/received-orders', [SuppliersController::class, 'storeReceivedOrder'])->name('suppliers.received-orders.store');
 
 Route::get('/settings', function () {
     return Inertia::render('settings/Index');

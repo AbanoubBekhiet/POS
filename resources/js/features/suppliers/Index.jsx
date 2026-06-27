@@ -1,214 +1,353 @@
 import { useState } from 'react'
+import { router, usePage } from '@inertiajs/react'
 import AppLayout from '../../shared/layouts/AppLayout'
-import { Button, SearchInput, Badge } from '../../shared/components'
-import { Plus, Mail, Phone, MapPin, Trash2, Edit2, ShieldAlert } from 'lucide-react'
+import { SearchInput, Badge } from '../../shared/components'
+import {
+    Plus, Phone, MapPin, Trash2, Edit2, X,
+    Package, Check, AlertCircle,
+    ShoppingCart, Minus
+} from 'lucide-react'
 
-export default function SuppliersIndex() {
-    const [search, setSearch] = useState('')
-    const [suppliers, setSuppliers] = useState([
-        { id: 1, name: 'شركة الأمل للأسمدة الزراعية', category: 'أسمدة وأتربة', contactName: 'م. أشرف سليم', phone: '+20 100 876 5432', email: 'ashraf@alamal-fert.com', address: 'المنطقة الصناعية، السادات', status: 'active' },
-        { id: 2, name: 'مستورد بذور الدلتا والشرق الأوسط', category: 'بذور ونباتات', contactName: 'أ. سامح فوزي', phone: '+20 111 987 6543', email: 'sameh@deltaseeds.com', address: 'ميدان التحرير، القاهرة', status: 'active' },
-        { id: 3, name: 'المصنع الحديث للأواني واللدائن', category: 'مستلزمات الحديقة', contactName: 'أ. حسين بكري', phone: '+20 122 135 2468', email: 'factory@modernpots.com', address: 'المنطقة الحرة، الإسكندرية', status: 'active' },
-        { id: 4, name: 'الشركة العربية لشبكات الري الحديث', category: 'شبكات ري وأدوات', contactName: 'م. طارق عبد الله', phone: '+20 155 765 4321', email: 'tariq@arabianirrigation.com', address: 'المنطقة الصناعية الثالثة، السادس من أكتوبر', status: 'active' },
-    ])
+// ── Helpers ───────────────────────────────────────────────────────────────
+const INPUT_CLS   = "w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
+const INPUT_STYLE = { backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }
+const LABEL_CLS   = "block text-sm font-semibold mb-1.5"
+const LABEL_STYLE = { color: '#5C5950' }
 
-    const [name, setName] = useState('')
-    const [category, setCategory] = useState('بذور ونباتات')
-    const [contact, setContact] = useState('')
-    const [phone, setPhone] = useState('')
-    const [email, setEmail] = useState('')
-    const [address, setAddress] = useState('')
+// ── Notification Banner ───────────────────────────────────────────────────
+function Notice({ message, type, onClose }) {
+    if (!message) return null
+    const ok = type === 'success'
+    return (
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold mb-4 ${ok ? 'bg-[#EEF4F1] text-[#2E5A44]' : 'bg-[#FDEEEC] text-[#C0392B]'}`} dir="rtl">
+            {ok ? <Check className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+            <span className="flex-1">{message}</span>
+            <button onClick={onClose}><X className="w-4 h-4" /></button>
+        </div>
+    )
+}
+
+// ── Received Order Modal ──────────────────────────────────────────────────
+function ReceivedOrderModal({ supplier, products, onClose }) {
+    const [items, setItems]       = useState([{ product_id: '', quantity: 1, price: '' }])
+    const [notes, setNotes]       = useState('')
+    const [submitting, setSubmitting] = useState(false)
+
+    const addItem    = () => setItems([...items, { product_id: '', quantity: 1, price: '' }])
+    const removeItem = (idx) => setItems(items.filter((_, i) => i !== idx))
+
+    const updateItem = (idx, field, value) => {
+        const next = [...items]
+        next[idx] = { ...next[idx], [field]: value }
+        if (field === 'product_id' && value && !next[idx].price) {
+            const prod = products.find(p => p.id === parseInt(value))
+            if (prod) next[idx].price = prod.price
+        }
+        setItems(next)
+    }
+
+    const total = items.reduce((sum, it) => {
+        return sum + (parseInt(it.quantity) || 0) * (parseFloat(it.price) || 0)
+    }, 0)
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        const validItems = items.filter(it => it.product_id && it.quantity > 0 && it.price !== '')
+        if (!validItems.length) return
+        setSubmitting(true)
+        router.post(`/suppliers/${supplier.id}/received-orders`, { items: validItems, notes }, {
+            onFinish: () => { setSubmitting(false); onClose() }
+        })
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" dir="rtl">
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-[#EAE8E2]">
+                    <div>
+                        <h3 className="text-base font-bold text-[#1A2D23]">تسجيل طلب وارد</h3>
+                        <p className="text-xs text-[#9A978F] mt-0.5">المورد: <span className="font-semibold text-[#5C5950]">{supplier.name}</span></p>
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-[#FAF9F6] transition-colors">
+                        <X className="w-5 h-5 text-[#9A978F]" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+                    <div className="space-y-3">
+                        {items.map((item, idx) => (
+                            <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-[#FAF9F6] p-3 rounded-xl border border-[#EAE8E2]">
+                                {/* Product */}
+                                <div className="col-span-5">
+                                    <label className={LABEL_CLS} style={LABEL_STYLE}>المنتج</label>
+                                    <select value={item.product_id} onChange={e => updateItem(idx, 'product_id', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} required>
+                                        <option value="">اختر منتجاً...</option>
+                                        {products.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} (مخزون: {p.stock})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/* Quantity */}
+                                <div className="col-span-3">
+                                    <label className={LABEL_CLS} style={LABEL_STYLE}>الكمية</label>
+                                    <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className={INPUT_CLS} style={INPUT_STYLE} required />
+                                </div>
+                                {/* Price */}
+                                <div className="col-span-3">
+                                    <label className={LABEL_CLS} style={LABEL_STYLE}>سعر الشراء</label>
+                                    <input type="number" min="0" step="0.01" value={item.price} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="0.00" className={INPUT_CLS} style={INPUT_STYLE} required />
+                                </div>
+                                {/* Remove */}
+                                <div className="col-span-1 flex justify-center">
+                                    {items.length > 1 && (
+                                        <button type="button" onClick={() => removeItem(idx)} className="p-2 rounded-lg hover:bg-[#FDEEEC] text-[#B8B5AE] hover:text-[#C0392B] transition-colors">
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Subtotal */}
+                                {item.product_id && item.quantity && item.price && (
+                                    <div className="col-span-12 text-left text-xs text-[#2E5A44] font-bold">
+                                        الإجمالي: {(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)} ج
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <button type="button" onClick={addItem} className="w-full py-2.5 border-2 border-dashed border-[#ADCBBB] rounded-xl text-sm font-semibold text-[#2E5A44] hover:bg-[#EEF4F1] transition-colors flex items-center justify-center gap-2">
+                        <Plus className="w-4 h-4" /> إضافة منتج آخر
+                    </button>
+
+                    {/* Notes */}
+                    <div>
+                        <label className={LABEL_CLS} style={LABEL_STYLE}>ملاحظات (اختياري)</label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="أي ملاحظات على هذا الطلب..." className={INPUT_CLS + " resize-none"} style={INPUT_STYLE} />
+                    </div>
+
+                    {/* Grand total */}
+                    <div className="flex items-center justify-between py-3 border-t border-[#EAE8E2]">
+                        <span className="text-sm font-semibold text-[#5C5950]">إجمالي الطلب:</span>
+                        <span className="text-lg font-bold text-[#2E5A44]">{total.toFixed(2)} ج</span>
+                    </div>
+                </form>
+
+                {/* Footer */}
+                <div className="p-5 border-t border-[#EAE8E2] flex gap-3">
+                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#EAE8E2] text-sm font-semibold text-[#5C5950] hover:bg-[#FAF9F6] transition-colors">
+                        إلغاء
+                    </button>
+                    <button onClick={handleSubmit} disabled={submitting}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                        style={{ backgroundColor: '#2E5A44' }}>
+                        <Check className="w-4 h-4" />
+                        {submitting ? 'جارٍ الحفظ...' : 'تأكيد الطلب وتحديث المخزون'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ── Edit Modal ────────────────────────────────────────────────────────────
+function EditModal({ supplier, onClose }) {
+    const [form, setForm]         = useState({
+        name:         supplier.name,
+        contact_name: supplier.contact_name === '—' ? '' : supplier.contact_name,
+        phone:        supplier.phone === '—' ? '' : supplier.phone,
+        address:      supplier.address === '—' ? '' : supplier.address,
+    })
+    const [submitting, setSubmitting] = useState(false)
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        setSubmitting(true)
+        router.put(`/suppliers/${supplier.id}`, form, {
+            onFinish: () => { setSubmitting(false); onClose() }
+        })
+    }
+
+    const field = (label, key, type = 'text', placeholder = '') => (
+        <div>
+            <label className={LABEL_CLS} style={LABEL_STYLE}>{label}</label>
+            <input type={type} placeholder={placeholder} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className={INPUT_CLS} style={INPUT_STYLE} />
+        </div>
+    )
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" dir="rtl">
+                <div className="flex items-center justify-between p-5 border-b border-[#EAE8E2]">
+                    <h3 className="text-base font-bold text-[#1A2D23]">تعديل بيانات المورد</h3>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-[#FAF9F6]"><X className="w-5 h-5 text-[#9A978F]" /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                    {field('اسم المورد / الشركة *', 'name', 'text', 'اسم الشركة أو المورد')}
+                    {field('المسؤول عن التوريد', 'contact_name', 'text', 'الاسم الكامل')}
+                    {field('رقم الهاتف', 'phone', 'text', '0100xxxxxxx')}
+                    {field('العنوان', 'address', 'text', 'المنطقة، المدينة')}
+                    <div className="flex gap-3 pt-2">
+                        <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#EAE8E2] text-sm font-semibold text-[#5C5950] hover:bg-[#FAF9F6]">إلغاء</button>
+                        <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-60" style={{ backgroundColor: '#2E5A44' }}>
+                            {submitting ? 'جارٍ الحفظ...' : 'حفظ التغييرات'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────
+export default function SuppliersIndex({ suppliers = [], products = [], filters = {} }) {
+    const { props } = usePage()
+    const flash = props.flash ?? {}
+
+    const [search, setSearch]       = useState(filters.search ?? '')
+    const [editTarget, setEditTarget]   = useState(null)
+    const [orderTarget, setOrderTarget] = useState(null)
+    const [notice, setNotice]       = useState(flash.success ? { type: 'success', text: flash.success } : null)
+
+    const [form, setForm] = useState({ name: '', contact_name: '', phone: '', address: '' })
+    const [submitting, setSubmitting] = useState(false)
 
     const filtered = suppliers.filter(s =>
         s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.contactName.toLowerCase().includes(search.toLowerCase()) ||
-        s.category.toLowerCase().includes(search.toLowerCase())
+        s.contact_name.toLowerCase().includes(search.toLowerCase()) ||
+        s.phone.includes(search)
     )
 
     const handleAdd = (e) => {
         e.preventDefault()
-        if (!name.trim()) return
-        const newSupplier = {
-            id: Date.now(),
-            name,
-            category,
-            contactName: contact,
-            phone: phone || 'غير متوفر',
-            email: email || 'غير متوفر',
-            address: address || 'غير متوفر',
-            status: 'active'
-        }
-        setSuppliers([...suppliers, newSupplier])
-        setName('')
-        setContact('')
-        setPhone('')
-        setEmail('')
-        setAddress('')
-        alert('تم تسجيل المورد الجديد بنجاح.')
+        if (!form.name.trim()) return
+        setSubmitting(true)
+        router.post('/suppliers', form, {
+            onSuccess: () => {
+                setForm({ name: '', contact_name: '', phone: '', address: '' })
+                setNotice({ type: 'success', text: 'تم إضافة المورد بنجاح.' })
+            },
+            onFinish: () => setSubmitting(false)
+        })
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('هل أنت متأكد من حذف بيانات هذا المورد؟')) {
-            setSuppliers(suppliers.filter(s => s.id !== id))
-        }
+        if (!window.confirm('هل أنت متأكد من حذف بيانات هذا المورد؟')) return
+        router.delete(`/suppliers/${id}`, {
+            onSuccess: () => setNotice({ type: 'success', text: 'تم حذف المورد.' })
+        })
     }
 
+    const fieldInput = (label, key, type = 'text', placeholder = '') => (
+        <div>
+            <label className={LABEL_CLS} style={LABEL_STYLE}>{label}</label>
+            <input type={type} placeholder={placeholder} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className={INPUT_CLS} style={INPUT_STYLE} />
+        </div>
+    )
+
     return (
-        <AppLayout title="إدارة الموردين" subtitle="متابعة جهات توريد البذور، المعدات، الأسمدة والمستلزمات">
+        <AppLayout title="إدارة الموردين" subtitle="متابعة جهات التوريد وتسجيل الطلبات الواردة">
+            {editTarget  && <EditModal supplier={editTarget} onClose={() => setEditTarget(null)} />}
+            {orderTarget && <ReceivedOrderModal supplier={orderTarget} products={products} onClose={() => setOrderTarget(null)} />}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" dir="rtl">
-                {/* Form Column */}
+                {/* ── Add Form ── */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#EAE8E2] text-right">
-                        <h3 className="text-base font-bold text-[#1A2D23] mb-4">تسجيل مورد جديد</h3>
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>اسم الشركة / المورد</label>
-                                <input
-                                    type="text"
-                                    placeholder="مثال: شركة النيل للتوريدات"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>قسم التوريد</label>
-                                <select
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium cursor-pointer"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                >
-                                    <option value="بذور ونباتات">بذور ونباتات</option>
-                                    <option value="أسمدة وأتربة">أسمدة وأتربة</option>
-                                    <option value="أدوات زراعية">أدوات زراعية</option>
-                                    <option value="مستلزمات الحديقة">مستلزمات الحديقة</option>
-                                    <option value="شبكات ري وأدوات">شبكات ري وأدوات</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>المسؤول (اسم جهة الاتصال)</label>
-                                <input
-                                    type="text"
-                                    placeholder="مثال: م. أحمد الدلجاوي"
-                                    value={contact}
-                                    onChange={(e) => setContact(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>رقم الهاتف</label>
-                                <input
-                                    type="text"
-                                    placeholder="مثال: 0100xxxxxxx"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>البريد الإلكتروني</label>
-                                <input
-                                    type="email"
-                                    placeholder="supplier@email.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-left font-medium"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>العنوان</label>
-                                <input
-                                    type="text"
-                                    placeholder="المنطقة، المدينة"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                    style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-95 active:scale-95 shadow-md flex items-center justify-center gap-2"
-                                style={{ backgroundColor: '#2E5A44' }}
-                            >
+                    <div className="bg-white rounded-2xl p-5 border border-[#EAE8E2] sticky top-6">
+                        <h3 className="text-base font-bold mb-4 text-right" style={{ color: '#1A2D23' }}>إضافة مورد جديد</h3>
+                        <Notice message={notice?.text} type={notice?.type} onClose={() => setNotice(null)} />
+                        <form onSubmit={handleAdd} className="space-y-4" dir="rtl">
+                            {fieldInput('اسم المورد / الشركة *', 'name', 'text', 'اسم الشركة أو المورد')}
+                            {fieldInput('المسؤول عن التوريد', 'contact_name', 'text', 'الاسم الكامل')}
+                            {fieldInput('رقم الهاتف', 'phone', 'text', 'مثال: 0100xxxxxxx')}
+                            {fieldInput('العنوان', 'address', 'text', 'المنطقة، المدينة')}
+                            <button type="submit" disabled={submitting}
+                                className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-95 active:scale-95 shadow-md flex items-center justify-center gap-2 disabled:opacity-60"
+                                style={{ backgroundColor: '#2E5A44' }}>
                                 <Plus className="w-4 h-4" />
-                                تسجيل المورد
+                                {submitting ? 'جارٍ الحفظ...' : 'تسجيل المورد'}
                             </button>
                         </form>
                     </div>
                 </div>
 
-                {/* List Column */}
+                {/* ── List ── */}
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#EAE8E2] flex items-center justify-between">
+                    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#EAE8E2] flex items-center justify-between gap-4">
                         <SearchInput
-                            placeholder="ابحث عن مورد، ممثل الشركة، أو قسم..."
+                            placeholder="ابحث عن مورد أو مسؤول..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={e => setSearch(e.target.value)}
                             className="w-full max-w-md"
                         />
-                        <span className="text-xs font-semibold" style={{ color: '#9A978F' }}>
-                            {filtered.length} جهات توريد مسجلة
+                        <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#9A978F' }}>
+                            {filtered.length} جهة توريد
                         </span>
                     </div>
 
+                    {filtered.length === 0 && (
+                        <div className="bg-white rounded-2xl p-12 border border-[#EAE8E2] flex flex-col items-center gap-3 text-center">
+                            <div className="w-14 h-14 rounded-2xl bg-[#FAF9F6] flex items-center justify-center">
+                                <Package className="w-7 h-7 text-[#B8B5AE]" />
+                            </div>
+                            <p className="text-sm font-bold text-[#5C5950]">لا توجد جهات توريد مسجلة</p>
+                            <p className="text-xs text-[#9A978F]">أضف أول مورد باستخدام النموذج على اليسار</p>
+                        </div>
+                    )}
+
                     <div className="space-y-4">
                         {filtered.map((sup, i) => (
-                            <div
-                                key={sup.id}
-                                className="bg-white rounded-2xl p-5 border border-[#EAE8E2] transition-all hover:shadow-md hover:border-[#ADCBBB] animate-fade-in text-right"
-                                style={{ animationDelay: `${i * 60}ms` }}
-                            >
-                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                    <div className="text-right">
-                                        <div className="flex items-center gap-3">
+                            <div key={sup.id}
+                                className="bg-white rounded-2xl border border-[#EAE8E2] transition-all hover:shadow-md hover:border-[#ADCBBB] text-right"
+                                style={{ animationDelay: `${i * 60}ms` }}>
+                                <div className="p-5">
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                        {/* Info */}
+                                        <div className="text-right flex-1 min-w-0">
                                             <h4 className="text-base font-bold text-[#1A2D23]">{sup.name}</h4>
-                                            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#EEF4F1] text-[#2E5A44] border border-[#ADCBBB]">
-                                                {sup.category}
-                                            </span>
+                                            {sup.contact_name !== '—' && (
+                                                <p className="text-xs text-[#9A978F] mt-0.5">
+                                                    المسؤول: <span className="font-bold text-[#5C5950]">{sup.contact_name}</span>
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-4 mt-2 flex-wrap">
+                                                <span className="text-xs text-[#9A978F]">
+                                                    طلبات واردة: <span className="font-bold text-[#1A2D23]">{sup.received_orders_count}</span>
+                                                </span>
+                                                <span className="text-xs text-[#9A978F]">
+                                                    إجمالي المشتريات: <span className="font-bold text-[#2E5A44]">{sup.total_purchased} ج</span>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-[#9A978F] mt-1">المسؤول عن التوريد: <span className="font-bold text-[#5C5950]">{sup.contactName}</span></p>
-                                    </div>
-                                    <div className="flex items-center gap-2 sm:self-start">
-                                        <Badge variant={sup.status === 'active' ? 'success' : 'neutral'}>
-                                            {sup.status === 'active' ? 'نشط' : 'غير نشط'}
-                                        </Badge>
-                                        <button className="p-2 rounded-lg hover:bg-[#EAE8E2] text-[#B8B5AE] hover:text-[#5C5950] transition-colors">
-                                            <Edit2 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(sup.id)}
-                                            className="p-2 rounded-lg hover:bg-[#FDEEEC] text-[#B8B5AE] hover:text-[#C0392B] transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-[#FAF9F6]">
-                                    <div className="flex items-center gap-2 justify-start">
-                                        <Phone className="w-4 h-4 text-[#9A978F]" />
-                                        <span className="text-xs font-semibold text-[#5C5950]">{sup.phone}</span>
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-2 sm:self-start">
+                                            <button onClick={() => setOrderTarget(sup)} title="تسجيل طلب وارد"
+                                                className="p-2 rounded-lg hover:bg-[#EEF4F1] text-[#2E5A44] transition-colors">
+                                                <ShoppingCart className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => setEditTarget(sup)}
+                                                className="p-2 rounded-lg hover:bg-[#EAE8E2] text-[#B8B5AE] hover:text-[#5C5950] transition-colors">
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => handleDelete(sup.id)}
+                                                className="p-2 rounded-lg hover:bg-[#FDEEEC] text-[#B8B5AE] hover:text-[#C0392B] transition-colors">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 justify-start">
-                                        <Mail className="w-4 h-4 text-[#9A978F]" />
-                                        <span className="text-xs font-semibold text-[#5C5950] truncate">{sup.email}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 justify-start sm:col-span-1">
-                                        <MapPin className="w-4 h-4 text-[#9A978F]" />
-                                        <span className="text-xs font-semibold text-[#5C5950] truncate">{sup.address}</span>
+
+                                    {/* Contact */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#FAF9F6]">
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-[#9A978F] flex-shrink-0" />
+                                            <span className="text-xs font-semibold text-[#5C5950]">{sup.phone}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-[#9A978F] flex-shrink-0" />
+                                            <span className="text-xs font-semibold text-[#5C5950] truncate">{sup.address}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
