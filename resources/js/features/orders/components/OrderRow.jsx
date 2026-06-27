@@ -1,20 +1,12 @@
-import { useState } from 'react'
-import { Badge } from '../../../shared/components'
-import { Trash2, ChevronDown } from 'lucide-react'
+import { Trash2, Eye, Tag, RotateCcw, Printer } from 'lucide-react'
 
-const statusMap = {
-    completed:  { variant: 'success', label: 'مكتمل' },
-    processing: { variant: 'info',    label: 'قيد المعالجة' },
-    pending:    { variant: 'warning', label: 'معلق' },
-    cancelled:  { variant: 'danger',  label: 'ملغي' },
-    delivered:  { variant: 'success', label: 'تم التوصيل' },
-}
-
-const STATUS_OPTIONS = ['pending', 'processing', 'completed', 'delivered', 'cancelled']
-
-export default function OrderRow({ order, onStatusChange, onDelete }) {
-    const [showStatusMenu, setShowStatusMenu] = useState(false)
-    const status = statusMap[order.status] || statusMap.pending
+export default function OrderRow({ order, onDelete, onDetails, onDiscount, onReturn, onPrint }) {
+    const hasDiscount = order.discount > 0
+    const returnBadge = order.return_status === 'full'
+        ? { label: 'مُرجع كلياً', bg: '#FEF3C7', color: '#92400E' }
+        : order.return_status === 'partial'
+        ? { label: 'مرتجع جزئي', bg: '#FFEDD5', color: '#9A3412' }
+        : null
 
     return (
         <>
@@ -31,69 +23,55 @@ export default function OrderRow({ order, onStatusChange, onDelete }) {
                 </td>
                 <td className="px-6 py-4 text-right">
                     <div className="flex items-center gap-3 justify-start">
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                            style={{ background: 'linear-gradient(135deg, #D5E6DC, #ADCBBB)', color: '#1A2D23' }}
-                        >
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #D5E6DC, #ADCBBB)', color: '#1A2D23' }}>
                             {order.customer.charAt(0)}
                         </div>
                         <div>
                             <p className="text-sm font-medium" style={{ color: '#3C3A33' }}>{order.customer}</p>
-                            <p className="text-xs" style={{ color: '#B8B5AE' }}>{order.email}</p>
+                            {returnBadge && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: returnBadge.bg, color: returnBadge.color }}>
+                                    {returnBadge.label}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-right" style={{ color: '#7C7870' }}>{order.items} منتجات</td>
-                <td className="px-6 py-4 text-sm font-bold text-right" style={{ color: '#1A2D23' }}>{order.total}</td>
                 <td className="px-6 py-4 text-right">
-                    {/* Status dropdown */}
-                    {onStatusChange ? (
-                        <div className="relative inline-block">
-                            <button
-                                onClick={() => setShowStatusMenu(!showStatusMenu)}
-                                className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border transition-colors hover:opacity-80"
-                                style={{ borderColor: '#EAE8E2' }}
-                            >
-                                <Badge variant={status.variant} dot>{status.label}</Badge>
-                                <ChevronDown className="w-3 h-3 text-[#9A978F]" />
-                            </button>
-                            {showStatusMenu && (
-                                <div
-                                    className="absolute top-full mt-1 right-0 bg-white border border-[#EAE8E2] rounded-xl shadow-xl z-10 min-w-[140px] overflow-hidden"
-                                    onBlur={() => setShowStatusMenu(false)}
-                                >
-                                    {STATUS_OPTIONS.map(s => (
-                                        <button
-                                            key={s}
-                                            onClick={() => {
-                                                onStatusChange(s)
-                                                setShowStatusMenu(false)
-                                            }}
-                                            className="w-full text-right px-4 py-2 text-xs font-semibold transition-colors hover:bg-[#FAF9F6]"
-                                            style={{
-                                                color: s === order.status ? '#2E5A44' : '#5C5950',
-                                                backgroundColor: s === order.status ? '#EEF4F1' : 'transparent',
-                                            }}
-                                        >
-                                            {statusMap[s]?.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <Badge variant={status.variant} dot>{status.label}</Badge>
-                    )}
+                    <div>
+                        <span className="text-sm font-bold" style={{ color: '#1A2D23' }}>{order.net_total}</span>
+                        {hasDiscount && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <Tag className="w-3 h-3 text-orange-400" />
+                                <span className="text-[11px] text-orange-500 line-through">{order.total}</span>
+                                <span className="text-[11px] text-orange-500">- {order.discount.toFixed(2)}</span>
+                            </div>
+                        )}
+                    </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-right" style={{ color: '#B8B5AE' }}>{order.date}</td>
                 <td className="px-6 py-4 text-left">
                     <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={onDetails} title="تفاصيل الطلب"
+                            className="p-1.5 rounded-lg transition-colors hover:bg-[#EEF4F1]">
+                            <Eye className="w-4 h-4" style={{ color: '#2E5A44' }} />
+                        </button>
+                        <button onClick={onDiscount} title="تطبيق خصم"
+                            className="p-1.5 rounded-lg transition-colors hover:bg-orange-50">
+                            <Tag className="w-4 h-4 text-orange-400" />
+                        </button>
+                        <button onClick={onReturn} title="تسجيل مرتجع"
+                            className="p-1.5 rounded-lg transition-colors hover:bg-amber-50">
+                            <RotateCcw className="w-4 h-4 text-amber-500" />
+                        </button>
+                        <button onClick={onPrint} title="طباعة"
+                            className="p-1.5 rounded-lg transition-colors hover:bg-[#EEF4F1]">
+                            <Printer className="w-4 h-4" style={{ color: '#7C7870' }} />
+                        </button>
                         {onDelete && (
-                            <button
-                                onClick={onDelete}
-                                className="p-1.5 rounded-lg transition-colors hover:bg-[#FDEEEC] hover:text-[#C0392B]"
-                                title="حذف الطلب"
-                            >
+                            <button onClick={onDelete} title="حذف الطلب"
+                                className="p-1.5 rounded-lg transition-colors hover:bg-[#FDEEEC] hover:text-[#C0392B]">
                                 <Trash2 className="w-4 h-4" style={{ color: '#B8B5AE' }} />
                             </button>
                         )}
@@ -102,17 +80,11 @@ export default function OrderRow({ order, onStatusChange, onDelete }) {
             </tr>
 
             {/* Mobile Card */}
-            <div
-                className="sm:hidden p-4 text-right"
-                style={{ borderBottom: '1px solid #EAE8E2' }}
-                dir="rtl"
-            >
+            <div className="sm:hidden p-4 text-right" style={{ borderBottom: '1px solid #EAE8E2' }} dir="rtl">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                        <div
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                            style={{ background: 'linear-gradient(135deg, #D5E6DC, #ADCBBB)', color: '#1A2D23' }}
-                        >
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #D5E6DC, #ADCBBB)', color: '#1A2D23' }}>
                             {order.customer.charAt(0)}
                         </div>
                         <div className="text-right">
@@ -120,21 +92,20 @@ export default function OrderRow({ order, onStatusChange, onDelete }) {
                             <p className="text-xs" style={{ color: '#B8B5AE' }}>{order.id} · {order.date}</p>
                         </div>
                     </div>
-                    {onDelete && (
-                        <button
-                            onClick={onDelete}
-                            className="p-1.5 rounded-lg hover:bg-[#FDEEEC] transition-colors"
-                        >
-                            <Trash2 className="w-4 h-4 text-[#B8B5AE]" />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                        <button onClick={onDetails} className="p-1.5 rounded-lg hover:bg-[#EEF4F1] transition-colors"><Eye className="w-4 h-4" style={{ color: '#2E5A44' }} /></button>
+                        {onDelete && <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-[#FDEEEC] transition-colors"><Trash2 className="w-4 h-4 text-[#B8B5AE]" /></button>}
+                    </div>
                 </div>
-                <div className="flex items-center justify-between mt-3 flex-row-reverse">
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold" style={{ color: '#1A2D23' }}>{order.total}</span>
+                <div className="flex items-center justify-between mt-3">
+                    <div>
+                        <span className="text-sm font-bold" style={{ color: '#1A2D23' }}>{order.net_total}</span>
+                        {hasDiscount && <span className="text-xs text-orange-500 line-through mr-1">{order.total}</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {returnBadge && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: returnBadge.bg, color: returnBadge.color }}>{returnBadge.label}</span>}
                         <span className="text-xs" style={{ color: '#B8B5AE' }}>{order.items} منتجات</span>
                     </div>
-                    <Badge variant={status.variant} dot>{status.label}</Badge>
                 </div>
             </div>
         </>

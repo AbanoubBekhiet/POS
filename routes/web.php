@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\posController;
+use App\Http\Controllers\SuppliersController;
 
 
 Route::get('/', function () {
@@ -30,7 +31,6 @@ Route::post('/pos/update-cart-item', [posController::class, 'updateCartItem'])->
 Route::delete('/pos/delete-cart-item/{cartId}', [posController::class, 'deleteCartItem'])->name('pos.delete-cart-item');
 Route::post('/pos/clear-cart/{cartId}', [posController::class, 'clearCart'])->name('pos.clear-cart');
 
-// Pending carts (Save as Cart / Hold)
 Route::post('/pos/pending-carts', [posController::class, 'saveCart'])->name('pos.save-cart');
 Route::delete('/pos/pending-carts/{id}', [posController::class, 'deletePendingCart'])->name('pos.delete-pending-cart');
 Route::post('/pos/pending-carts/swap', [posController::class, 'swapCarts'])->name('pos.pending-carts.swap');
@@ -49,8 +49,11 @@ Route::get('/products/filter', [ProductsController::class, 'filter'])->name('pro
 
 Route::get('/orders', [OrdersController::class, 'index'])->name('orders');
 Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');
+Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
 Route::put('/orders/{order}', [OrdersController::class, 'update'])->name('orders.update');
 Route::delete('/orders/{order}', [OrdersController::class, 'destroy'])->name('orders.destroy');
+Route::post('/orders/{order}/discount', [OrdersController::class, 'applyDiscount'])->name('orders.discount');
+Route::post('/orders/{order}/return', [OrdersController::class, 'returnItems'])->name('orders.return');
 
 Route::get('/customers', [CustomersController::class, 'index'])->name('customers');
 Route::post('/customers', [CustomersController::class, 'store'])->name('customers.store');
@@ -65,7 +68,6 @@ Route::delete('/categories/{category}', [CategoriesController::class, 'destroy']
 
 
 
-use App\Http\Controllers\SuppliersController;
 
 Route::get('/suppliers', [SuppliersController::class, 'index'])->name('suppliers');
 Route::post('/suppliers', [SuppliersController::class, 'store'])->name('suppliers.store');

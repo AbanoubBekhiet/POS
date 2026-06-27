@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import AppLayout from '../../shared/layouts/AppLayout'
 import { SearchInput, Badge } from '../../shared/components'
@@ -201,7 +201,7 @@ function EditModal({ supplier, onClose }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────
-export default function SuppliersIndex({ suppliers = [], products = [], filters = {} }) {
+export default function SuppliersIndex({ suppliers = { data: [], current_page: 1, next_page: null }, products = [], filters = {} }) {
     const { props } = usePage()
     const flash = props.flash ?? {}
 
@@ -213,11 +213,72 @@ export default function SuppliersIndex({ suppliers = [], products = [], filters 
     const [form, setForm] = useState({ name: '', contact_name: '', phone: '', address: '' })
     const [submitting, setSubmitting] = useState(false)
 
-    const filtered = suppliers.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.contact_name.toLowerCase().includes(search.toLowerCase()) ||
-        s.phone.includes(search)
-    )
+    // Infinite Scroll States
+    const [loadedSuppliers, setLoadedSuppliers] = useState(suppliers.data || [])
+    const [nextPage, setNextPage] = useState(suppliers.next_page)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
+    const loadMoreRef = useRef(null)
+
+    // Sync loaded suppliers when suppliers prop changes
+    useEffect(() => {
+        if (suppliers.current_page === 1) {
+            setLoadedSuppliers(suppliers.data || [])
+        } else {
+            setLoadedSuppliers(prev => {
+                const existingIds = new Set(prev.map(s => s.id))
+                const newItems = (suppliers.data || []).filter(s => !existingIds.has(s.id))
+                return [...prev, ...newItems]
+            })
+        }
+        setNextPage(suppliers.next_page)
+        setIsLoadingMore(false)
+    }, [suppliers])
+
+    // Trigger search filter (resets to page 1)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (search !== (filters?.search || '')) {
+                router.get('/suppliers', { search }, { preserveState: true, replace: true })
+            }
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [search])
+
+    // Load more nextPage items
+    const loadMore = () => {
+        if (!nextPage || isLoadingMore) return
+        setIsLoadingMore(true)
+
+        const queryParams = { page: nextPage }
+        if (search) queryParams.search = search
+
+        router.get('/suppliers', queryParams, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['suppliers']
+        })
+    }
+
+    // Intersection Observer for Infinite Scroll
+    useEffect(() => {
+        if (!nextPage || isLoadingMore) return
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                loadMore()
+            }
+        }, { threshold: 0.1 })
+
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current)
+        }
+
+        return () => {
+            if (loadMoreRef.current) {
+                observer.unobserve(loadMoreRef.current)
+            }
+        }
+    }, [nextPage, isLoadingMore, search])
 
     const handleAdd = (e) => {
         e.preventDefault()
@@ -282,11 +343,11 @@ export default function SuppliersIndex({ suppliers = [], products = [], filters 
                             className="w-full max-w-md"
                         />
                         <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#9A978F' }}>
-                            {filtered.length} جهة توريد
+                            {loadedSuppliers.length} جهة توريد
                         </span>
                     </div>
 
-                    {filtered.length === 0 && (
+                    {loadedSuppliers.length === 0 && (
                         <div className="bg-white rounded-2xl p-12 border border-[#EAE8E2] flex flex-col items-center gap-3 text-center">
                             <div className="w-14 h-14 rounded-2xl bg-[#FAF9F6] flex items-center justify-center">
                                 <Package className="w-7 h-7 text-[#B8B5AE]" />
@@ -297,7 +358,7 @@ export default function SuppliersIndex({ suppliers = [], products = [], filters 
                     )}
 
                     <div className="space-y-4">
-                        {filtered.map((sup, i) => (
+                        {loadedSuppliers.map((sup, i) => (
                             <div key={sup.id}
                                 className="bg-white rounded-2xl border border-[#EAE8E2] transition-all hover:shadow-md hover:border-[#ADCBBB] text-right"
                                 style={{ animationDelay: `${i * 60}ms` }}>
@@ -353,6 +414,12 @@ export default function SuppliersIndex({ suppliers = [], products = [], filters 
                             </div>
                         ))}
                     </div>
+                    {/* Infinite Scroll Loader Target */}
+                    {nextPage && (
+                        <div ref={loadMoreRef} className="flex justify-center items-center py-8">
+                            <div className="w-6 h-6 border-2 border-[#2E5A44] border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    )}
                 </div>
             </div>
         </AppLayout>

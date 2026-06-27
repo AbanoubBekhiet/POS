@@ -10,6 +10,8 @@ class Order extends Model
         'user_id',
         'product_id',
         'total_price',
+        'discount',
+        'return_status',
         'status',
     ];
 
@@ -26,5 +28,10 @@ class Order extends Model
         return $this->belongsToMany(Product::class, 'products_orders')
                     ->withPivot('quantity', 'price', 'total_price')
                     ->withTimestamps();
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(OrderReturn::class);
     }
 }

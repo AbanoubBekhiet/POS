@@ -27,7 +27,9 @@ class SuppliersController extends Controller
             });
         }
 
-        $suppliers = $query->latest()->get()->map(fn($s) => [
+        $paginator = $query->latest()->simplePaginate(15);
+
+        $suppliers = collect($paginator->items())->map(fn($s) => [
             'id'                    => $s->id,
             'name'                  => $s->name,
             'contact_name'          => $s->contact_name ?? '—',
@@ -48,7 +50,11 @@ class SuppliersController extends Controller
             ]);
 
         return Inertia::render('suppliers/Index', [
-            'suppliers' => $suppliers,
+            'suppliers' => [
+                'data'         => $suppliers,
+                'next_page'    => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
+                'current_page' => $paginator->currentPage(),
+            ],
             'products'  => $products,
             'filters'   => ['search' => $search],
         ]);

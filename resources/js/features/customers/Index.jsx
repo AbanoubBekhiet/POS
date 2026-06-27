@@ -96,7 +96,6 @@ export default function CustomersIndex({ customers = { data: [], current_page: 1
     // Forms
     const { data, setData, post, put, processing, reset, clearErrors, errors } = useForm({
         name: '',
-        email: '',
         phone_number: '',
         address: '',
         shop_name: '',
@@ -114,7 +113,6 @@ export default function CustomersIndex({ customers = { data: [], current_page: 1
         setEditingCustomer(cust)
         setData({
             name: cust.name,
-            email: cust.email === '—' ? '' : cust.email,
             phone_number: cust.phone === '—' ? '' : cust.phone,
             address: cust.address === '—' ? '' : cust.address,
             shop_name: cust.shop_name === '—' ? '' : cust.shop_name,
@@ -273,12 +271,6 @@ export default function CustomersIndex({ customers = { data: [], current_page: 1
 
                                     {/* Contact */}
                                     <div className="space-y-2 mb-4 text-right px-1">
-                                        {customer.email && customer.email !== '—' && (
-                                            <div className="flex items-center gap-2 justify-start">
-                                                <Mail className="w-3.5 h-3.5 flex-shrink-0 text-[#9A978F]" />
-                                                <span className="text-sm truncate" style={{ color: '#7C7870' }}>{customer.email}</span>
-                                            </div>
-                                        )}
                                         {customer.phone && customer.phone !== '—' && (
                                             <div className="flex items-center gap-2 justify-start">
                                                 <Phone className="w-3.5 h-3.5 flex-shrink-0 text-[#9A978F]" />
@@ -368,27 +360,15 @@ export default function CustomersIndex({ customers = { data: [], current_page: 1
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1 text-right">
-                                        <label className="text-xs font-bold text-[#7C7870]">البريد الإلكتروني</label>
-                                        <input
-                                            type="email"
-                                            value={data.email}
-                                            onChange={e => setData('email', e.target.value)}
-                                            className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
-                                        />
-                                        {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                                    </div>
-                                    <div className="space-y-1 text-right">
-                                        <label className="text-xs font-bold text-[#7C7870]">رقم الهاتف</label>
-                                        <input
-                                            type="text"
-                                            value={data.phone_number}
-                                            onChange={e => setData('phone_number', e.target.value)}
-                                            className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
-                                        />
-                                        {errors.phone_number && <p className="text-xs text-red-500">{errors.phone_number}</p>}
-                                    </div>
+                                <div className="space-y-1 text-right">
+                                    <label className="text-xs font-bold text-[#7C7870]">رقم الهاتف</label>
+                                    <input
+                                        type="text"
+                                        value={data.phone_number}
+                                        onChange={e => setData('phone_number', e.target.value)}
+                                        className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
+                                    />
+                                    {errors.phone_number && <p className="text-xs text-red-500">{errors.phone_number}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -473,27 +453,15 @@ export default function CustomersIndex({ customers = { data: [], current_page: 1
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1 text-right">
-                                        <label className="text-xs font-bold text-[#7C7870]">البريد الإلكتروني</label>
-                                        <input
-                                            type="email"
-                                            value={data.email}
-                                            onChange={e => setData('email', e.target.value)}
-                                            className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
-                                        />
-                                        {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                                    </div>
-                                    <div className="space-y-1 text-right">
-                                        <label className="text-xs font-bold text-[#7C7870]">رقم الهاتف</label>
-                                        <input
-                                            type="text"
-                                            value={data.phone_number}
-                                            onChange={e => setData('phone_number', e.target.value)}
-                                            className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
-                                        />
-                                        {errors.phone_number && <p className="text-xs text-red-500">{errors.phone_number}</p>}
-                                    </div>
+                                <div className="space-y-1 text-right">
+                                    <label className="text-xs font-bold text-[#7C7870]">رقم الهاتف</label>
+                                    <input
+                                        type="text"
+                                        value={data.phone_number}
+                                        onChange={e => setData('phone_number', e.target.value)}
+                                        className="w-full px-3 py-2 border border-[#EAE8E2] rounded-xl text-sm focus:outline-none focus:border-[#2E5A44]"
+                                    />
+                                    {errors.phone_number && <p className="text-xs text-red-500">{errors.phone_number}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
