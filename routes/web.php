@@ -30,6 +30,12 @@ Route::post('/pos/update-cart-item', [posController::class, 'updateCartItem'])->
 Route::delete('/pos/delete-cart-item/{cartId}', [posController::class, 'deleteCartItem'])->name('pos.delete-cart-item');
 Route::post('/pos/clear-cart/{cartId}', [posController::class, 'clearCart'])->name('pos.clear-cart');
 
+// Pending carts (Save as Cart / Hold)
+Route::post('/pos/pending-carts', [posController::class, 'saveCart'])->name('pos.save-cart');
+Route::delete('/pos/pending-carts/{id}', [posController::class, 'deletePendingCart'])->name('pos.delete-pending-cart');
+Route::post('/pos/pending-carts/swap', [posController::class, 'swapCarts'])->name('pos.pending-carts.swap');
+Route::post('/pos/complete-order', [posController::class, 'completeOrder'])->name('pos.complete-order');
+
 
 
 

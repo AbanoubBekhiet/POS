@@ -13,13 +13,18 @@ export default function POSProductCard({ product, onAdd }) {
             `}
             dir="rtl"
         >
-            <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FAF9F6] to-[#EAE8E2] flex items-center justify-center text-2xl flex-shrink-0">
-                    {product.emoji || '📦'}
-                </div>
+            <div className="flex items-start gap-3">
+                
                 <div className="flex-1 min-w-0 text-right">
-                    <p className="text-sm font-bold text-[#1A2D23] truncate">{product.name}</p>
-                    <p className="text-xs text-[#9A978F] mt-0.5">{product.category}</p>
+                    <p className="text-sm font-bold text-[#1A2D23] leading-snug">{product.name}</p>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap justify-end">
+                        <p className="text-xs text-[#9A978F]">{product.category_name || product.category}</p>
+                        {product.unit && (
+                            <span className="text-[10px] font-bold bg-[#D5E6DC] text-[#2E5A44] px-1.5 py-0.5 rounded-full">
+                                {product.unit}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className="text-left flex-shrink-0">
                     <p className="text-sm font-bold text-[#2E5A44]">{product.price.toFixed(2)} ج</p>

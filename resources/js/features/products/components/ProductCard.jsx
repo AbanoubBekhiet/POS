@@ -52,6 +52,12 @@ export default function ProductCard({ product, onAddToCart, onEdit, onDelete }) 
                     <p className="text-lg font-bold" style={{ color: '#1A2D23' }}>{product.price.toFixed(2)}ج</p>
                     <p className="text-xs font-bold" style={{ color: '#2E5A44' }}>المخزون: {product.stock}</p>
                 </div>
+                {product.number_of_items_in_unit > 1 && (
+                    <div className="mt-2 flex items-center justify-end gap-1">
+                        <span className="text-[11px] font-semibold text-[#9A978F]">القطع في الوحدة:</span>
+                        <span className="text-[11px] font-bold bg-[#EEF4F1] text-[#2E5A44] px-2 py-0.5 rounded-full">{product.number_of_items_in_unit}</span>
+                    </div>
+                )}
             
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-[#FAF9F6]">
