@@ -31,16 +31,17 @@ class ProductsController extends Controller
         $products = collect($paginator->items())->map(function($product) {
             $mediaUrl = $product->getFirstMediaUrl('products');
             return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => floatval($product->price),
-                'description' => $product->description,
-                'stock' => intval($product->stock),
-                'unit' => $product->unit,
+                'id'                    => $product->id,
+                'name'                  => $product->name,
+                'price'                 => floatval($product->price),
+                'cost_price'            => floatval($product->cost_price),
+                'description'           => $product->description,
+                'stock'                 => intval($product->stock),
+                'unit'                  => $product->unit,
                 'number_of_items_in_unit' => intval($product->number_of_items_in_unit),
-                'category_id' => $product->category_id,
-                'category_name' => $product->category ? $product->category->name : 'بدون قسم',
-                'image_url' => $mediaUrl ? parse_url($mediaUrl, PHP_URL_PATH) : null,
+                'category_id'           => $product->category_id,
+                'category_name'         => $product->category ? $product->category->name : 'بدون قسم',
+                'image_url'             => $mediaUrl ? parse_url($mediaUrl, PHP_URL_PATH) : null,
             ];
         });
         
@@ -48,14 +49,14 @@ class ProductsController extends Controller
         
         return Inertia::render('products/Index', [
             'products' => [
-                'data' => $products,
-                'next_page' => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
+                'data'         => $products,
+                'next_page'    => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
                 'current_page' => $paginator->currentPage(),
             ],
             'total_count' => Product::count(),
-            'categories' => $categories,
-            'filters' => [
-                'search' => $search,
+            'categories'  => $categories,
+            'filters'     => [
+                'search'      => $search,
                 'category_id' => $categoryId
             ]
         ]);
@@ -63,24 +64,33 @@ class ProductsController extends Controller
 
     public function store(Request $request){
         $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'unit' => 'required|in:شكارة,علبة,كرتونة,شريط,دستة,لفة',
-            'number_of_items_in_unit' => 'required|integer|min:1',
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable|string',
-            'image' => 'nullable',
+            'name'                   => 'required|string|max:255',
+            'price'                  => 'required|numeric|min:0',
+            'cost_price'             => 'nullable|numeric|min:0',
+            'stock'                  => 'required|integer|min:0',
+            'unit'                   => 'required|in:شكارة,علبة,كرتونة,شريط,دستة,لفة',
+            'number_of_items_in_unit'=> 'required|integer|min:1',
+            'category_id'            => 'required|exists:categories,id',
+            'description'            => 'nullable|string',
+            'image'                  => 'nullable',
         ]);
-        
+        if($request->cost_price == 0){
+            session()->flash('error', 'سعر التكلفة يجب أن يكون أكبر من 0!');
+            return redirect()->back();
+        }
+        if($request->price <= $request->cost_price){
+            session()->flash('error', 'سعر البيع يجب أن يكون أكبر من سعر التكلفة!');
+            return redirect()->back();
+        }
         $product = Product::create([
-            'name' => $request->name,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'unit' => $request->unit,
-            'number_of_items_in_unit' => $request->number_of_items_in_unit,
-            'category_id' => $request->category_id,
-            'description' => $request->description,
+            'name'                   => $request->name,
+            'price'                  => $request->price,
+            'cost_price'             => $request->cost_price ?? 0,
+            'stock'                  => $request->stock,
+            'unit'                   => $request->unit,
+            'number_of_items_in_unit'=> $request->number_of_items_in_unit,
+            'category_id'            => $request->category_id,
+            'description'            => $request->description,
         ]);
         
         if ($request->hasFile('image')) {
@@ -93,25 +103,27 @@ class ProductsController extends Controller
 
     public function update(Request $request, $id){
         $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'unit' => 'required|in:شكارة,علبة,كرتونة,شريط,دستة,لفة',
-            'number_of_items_in_unit' => 'required|integer|min:1',
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable|string',
-            'image' => 'nullable',
+            'name'                   => 'required|string|max:255',
+            'price'                  => 'required|numeric|min:0',
+            'cost_price'             => 'nullable|numeric|min:0',
+            'stock'                  => 'required|integer|min:0',
+            'unit'                   => 'required|in:شكارة,علبة,كرتونة,شريط,دستة,لفة',
+            'number_of_items_in_unit'=> 'required|integer|min:1',
+            'category_id'            => 'required|exists:categories,id',
+            'description'            => 'nullable|string',
+            'image'                  => 'nullable',
         ]);
         
         $product = Product::findOrFail($id);
         $product->update([
-            'name' => $request->name,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'unit' => $request->unit,
-            'number_of_items_in_unit' => $request->number_of_items_in_unit,
-            'category_id' => $request->category_id,
-            'description' => $request->description,
+            'name'                   => $request->name,
+            'price'                  => $request->price,
+            'cost_price'             => $request->cost_price ?? 0,
+            'stock'                  => $request->stock,
+            'unit'                   => $request->unit,
+            'number_of_items_in_unit'=> $request->number_of_items_in_unit,
+            'category_id'            => $request->category_id,
+            'description'            => $request->description,
         ]);
         
         if ($request->hasFile('image')) {
@@ -152,16 +164,11 @@ class ProductsController extends Controller
                 return redirect()->back();
             }
 
-            // Read header row
             $header = array_shift($rows);
-
-            // Clean headers (remove BOM or spaces)
             $header = array_map(function($h) {
                 return trim(preg_replace('/[\x00-\x1F\x7F-\x9F\xEF\xBB\xBF]/', '', $h ?? ''));
             }, $header);
 
-            // Required headers mapping
-            // name/الاسم, price/السعر, category/التصنيف, stock/المخزون, unit/الوحدة, items_in_unit/القطع داخل الوحدة, description/الوصف
             $map = [];
             foreach ($header as $index => $col) {
                 $colLower = strtolower($col);
@@ -169,6 +176,8 @@ class ProductsController extends Controller
                     $map['name'] = $index;
                 } elseif ($colLower === 'price' || $col === 'السعر' || $col === 'سعر البيع') {
                     $map['price'] = $index;
+                } elseif ($colLower === 'cost_price' || $col === 'سعر التكلفة' || $col === 'تكلفة' || $col === 'سعر الشراء') {
+                    $map['cost_price'] = $index;
                 } elseif ($colLower === 'category' || $col === 'التصنيف' || $col === 'القسم') {
                     $map['category'] = $index;
                 } elseif ($colLower === 'stock' || $col === 'المخزون' || $col === 'الكمية') {
@@ -182,14 +191,13 @@ class ProductsController extends Controller
                 }
             }
 
-            // Validate headers: name, price, and category are required
             if (!isset($map['name']) || !isset($map['price']) || !isset($map['category'])) {
-                session()->flash('error', 'تنسيق الملف غير صحيح! يجب أن يحتوي الملف على أعمدة: "الاسم"، "السعر"، و "التصنيف" (أو "name"، "price"، و "category").');
+                session()->flash('error', 'تنسيق الملف غير صحيح! يجب أن يحتوي الملف على أعمدة: "الاسم"، "السعر"، و "التصنيف".');
                 return redirect()->back();
             }
 
             $imported = 0;
-            $skipped = 0;
+            $skipped  = 0;
             $validUnits = ['شكارة', 'علبة', 'كرتونة', 'شريط', 'دستة', 'لفة'];
 
             \Illuminate\Support\Facades\DB::beginTransaction();
@@ -199,9 +207,9 @@ class ProductsController extends Controller
                     continue;
                 }
 
-                $name = trim($row[$map['name']] ?? '');
-                $priceInput = trim($row[$map['price']] ?? '');
-                $price = floatval($priceInput);
+                $name         = trim($row[$map['name']] ?? '');
+                $priceInput   = trim($row[$map['price']] ?? '');
+                $price        = floatval($priceInput);
                 $categoryName = trim($row[$map['category']] ?? '');
 
                 if (!$name || !$priceInput || !$categoryName) {
@@ -209,25 +217,24 @@ class ProductsController extends Controller
                     continue;
                 }
 
-                $stock = isset($map['stock']) && isset($row[$map['stock']]) ? intval(trim($row[$map['stock']] ?? '0')) : 0;
-                $unit = isset($map['unit']) && isset($row[$map['unit']]) ? trim($row[$map['unit']] ?? '') : 'علبة';
-                if (!in_array($unit, $validUnits)) {
-                    $unit = 'علبة'; // default back to valid enum value
-                }
-                $numberOfItems = isset($map['number_of_items_in_unit']) && isset($row[$map['number_of_items_in_unit']]) ? intval(trim($row[$map['number_of_items_in_unit']] ?? '1')) : 1;
-                $description = isset($map['description']) && isset($row[$map['description']]) ? trim($row[$map['description']] ?? '') : null;
+                $costPrice      = isset($map['cost_price']) && isset($row[$map['cost_price']]) ? floatval(trim($row[$map['cost_price']] ?? '0')) : 0;
+                $stock          = isset($map['stock']) && isset($row[$map['stock']]) ? intval(trim($row[$map['stock']] ?? '0')) : 0;
+                $unit           = isset($map['unit']) && isset($row[$map['unit']]) ? trim($row[$map['unit']] ?? '') : 'علبة';
+                if (!in_array($unit, $validUnits)) { $unit = 'علبة'; }
+                $numberOfItems  = isset($map['number_of_items_in_unit']) && isset($row[$map['number_of_items_in_unit']]) ? intval(trim($row[$map['number_of_items_in_unit']] ?? '1')) : 1;
+                $description    = isset($map['description']) && isset($row[$map['description']]) ? trim($row[$map['description']] ?? '') : null;
 
-                // Find or create category
                 $category = Category::firstOrCreate(['name' => $categoryName]);
 
                 Product::create([
-                    'name' => $name,
-                    'price' => $price,
-                    'stock' => $stock,
-                    'unit' => $unit,
-                    'number_of_items_in_unit' => $numberOfItems,
-                    'category_id' => $category->id,
-                    'description' => $description,
+                    'name'                   => $name,
+                    'price'                  => $price,
+                    'cost_price'             => $costPrice,
+                    'stock'                  => $stock,
+                    'unit'                   => $unit,
+                    'number_of_items_in_unit'=> $numberOfItems,
+                    'category_id'            => $category->id,
+                    'description'            => $description,
                 ]);
 
                 $imported++;
@@ -242,6 +249,4 @@ class ProductsController extends Controller
 
         return redirect()->route('products');
     }
-
 }
-

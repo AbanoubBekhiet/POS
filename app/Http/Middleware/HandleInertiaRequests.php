@@ -43,6 +43,28 @@ class HandleInertiaRequests extends Middleware
                 'completed_order' => fn () => $request->session()->get('completed_order'),
                 'resumed_cart' => fn () => $request->session()->get('resumed_cart'),
             ],
+            'auth' => [
+                'user' => fn () => $request->user() ? [
+                    'id'    => $request->user()->id,
+                    'name'  => $request->user()->name,
+                    'email' => $request->user()->email,
+                ] : null,
+            ],
+            'appSettings' => fn () => $this->getAppSettings(),
         ];
+    }
+
+    private function getAppSettings(): array
+    {
+        try {
+            $receiptName    = \App\Models\Setting::where('key', 'receipt_name')->value('value') ?? 'أبو الدهب';
+            $receiptLogoVal = \App\Models\Setting::where('key', 'receipt_logo')->value('value');
+            return [
+                'receipt_name'     => $receiptName,
+                'receipt_logo_url' => $receiptLogoVal ? asset('storage/' . $receiptLogoVal) : null,
+            ];
+        } catch (\Exception $e) {
+            return ['receipt_name' => 'أبو الدهب', 'receipt_logo_url' => null];
+        }
     }
 }

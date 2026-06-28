@@ -6,14 +6,15 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\posController;
 use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\SettingsController;
 
 
-Route::get('/', function () {
-    return Inertia::render('dashboard/Index');
-})->name('dashboard');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
 
 Route::prefix('auth')->group(function () {
@@ -76,7 +77,9 @@ Route::delete('/suppliers/{supplier}', [SuppliersController::class, 'destroy'])-
 Route::get('/suppliers/{supplier}/received-orders', [SuppliersController::class, 'receivedOrders'])->name('suppliers.received-orders');
 Route::post('/suppliers/{supplier}/received-orders', [SuppliersController::class, 'storeReceivedOrder'])->name('suppliers.received-orders.store');
 
-Route::get('/settings', function () {
-    return Inertia::render('settings/Index');
-});
+Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
+Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
+Route::post('/statistics/verify-admin', [StatisticsController::class, 'verifyAdmin'])->name('statistics.verify-admin');
+Route::get('/statistics/range', [StatisticsController::class, 'range'])->name('statistics.range');

@@ -7,19 +7,23 @@ import {
     Users,
     Layers,
     Truck,
+    BarChart3,
     Plus,
     HelpCircle,
     LogOut,
     Leaf,
+    Settings,
 } from 'lucide-react'
 
 const navItems = [
     { name: 'لوحة التحكم',  icon: LayoutDashboard, href: '/' },
-    { name: 'المنتجات',   icon: Package,         href: '/products' },
-    { name: 'التصنيفات', icon: Layers,          href: '/categories' },
-    { name: 'العملاء',  icon: Users,           href: '/customers' },
-    { name: 'الطلبات',     icon: ClipboardList,   href: '/orders' },
-    { name: 'الموردين',  icon: Truck,           href: '/suppliers' },
+    { name: 'المنتجات',    icon: Package,         href: '/products' },
+    { name: 'التصنيفات',  icon: Layers,          href: '/categories' },
+    { name: 'العملاء',    icon: Users,           href: '/customers' },
+    { name: 'الطلبات',    icon: ClipboardList,   href: '/orders' },
+    { name: 'الموردين',   icon: Truck,           href: '/suppliers' },
+    { name: 'الإحصائيات', icon: BarChart3,       href: '/statistics' },
+    { name: 'الإعدادات',  icon: Settings,        href: '/settings' },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {

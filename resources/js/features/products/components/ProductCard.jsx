@@ -1,5 +1,5 @@
 import { Badge } from '../../../shared/components'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Edit2, Trash2 } from 'lucide-react'
 
 export default function ProductCard({ product, onAddToCart, onEdit, onDelete }) {
     return (
@@ -14,10 +14,10 @@ export default function ProductCard({ product, onAddToCart, onEdit, onDelete }) 
             <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: '#F4F3EF' }}>
                 <div className="absolute inset-0 flex items-center justify-center">
                     {product.image_url ? (
-                        <img 
-                            src={product.image_url} 
+                        <img
+                            src={product.image_url}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
                         <div
@@ -39,7 +39,6 @@ export default function ProductCard({ product, onAddToCart, onEdit, onDelete }) 
                         <Badge variant="danger">نفذت الكمية</Badge>
                     </div>
                 )}
-
             </div>
 
             {/* Info */}
@@ -48,38 +47,45 @@ export default function ProductCard({ product, onAddToCart, onEdit, onDelete }) 
                 <h3 className="text-sm font-bold mt-1 line-clamp-1 transition-colors text-right" style={{ color: '#1A2D23' }}>
                     {product.name}
                 </h3>
+
+                {/* Price row */}
                 <div className="flex items-center justify-between mt-3 flex-row-reverse">
-                    <p className="text-lg font-bold" style={{ color: '#1A2D23' }}>{product.price.toFixed(2)}ج</p>
+                    <p className="text-lg font-bold" style={{ color: '#1A2D23' }}>{product.price.toFixed(2)} ج</p>
                     <p className="text-xs font-bold" style={{ color: '#2E5A44' }}>المخزون: {product.stock}</p>
                 </div>
+
+                {/* Cost price */}
+                {product.cost_price > 0 && (
+                    <div className="mt-1.5 flex items-center justify-end gap-1">
+                        <span className="text-[11px] font-semibold" style={{ color: '#9A978F' }}>سعر التكلفة:</span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                            {product.cost_price.toFixed(2)} ج
+                        </span>
+                    </div>
+                )}
+
                 {product.number_of_items_in_unit > 1 && (
                     <div className="mt-2 flex items-center justify-end gap-1">
                         <span className="text-[11px] font-semibold text-[#9A978F]">القطع في الوحدة:</span>
                         <span className="text-[11px] font-bold bg-[#EEF4F1] text-[#2E5A44] px-2 py-0.5 rounded-full">{product.number_of_items_in_unit}</span>
                     </div>
                 )}
-            
+
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-[#FAF9F6]">
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit?.(product);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); onEdit?.(product); }}
                         className="p-1.5 rounded-lg hover:bg-[#FAF9F6] text-[#7C7870] hover:text-[#2E5A44] transition-colors"
                         title="تعديل"
                     >
-                        <Edit2 className="w-4.5 h-4.5" />
+                        <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete?.(product);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); onDelete?.(product); }}
                         className="p-1.5 rounded-lg hover:bg-[#FAF9F6] text-[#7C7870] hover:text-[#C0392B] transition-colors"
                         title="حذف"
                     >
-                        <Trash2 className="w-4.5 h-4.5" />
+                        <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
             </div>

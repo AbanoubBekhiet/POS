@@ -114,6 +114,7 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
     const { data, setData, post, processing, reset, clearErrors, errors } = useForm({
         name: '',
         price: '',
+        cost_price: '',
         stock: '',
         unit: 'علبة',
         number_of_items_in_unit: 1,
@@ -141,6 +142,7 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
         setData({
             name: '',
             price: '',
+            cost_price: '',
             stock: '',
             unit: 'علبة',
             number_of_items_in_unit: 1,
@@ -159,6 +161,7 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
         setData({
             name: product.name,
             price: product.price,
+            cost_price: product.cost_price || '',
             stock: product.stock,
             unit: product.unit,
             number_of_items_in_unit: product.number_of_items_in_unit,
@@ -303,7 +306,8 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                             <tr className="border-b border-[#EAE8E2]" style={{ backgroundColor: '#FAF9F6' }}>
                                 <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">المنتج</th>
                                 <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3 hidden sm:table-cell">القسم</th>
-                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">السعر</th>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">سعر البيع</th>
+                                <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3 hidden lg:table-cell">سعر التكلفة</th>
                                 <th className="text-right text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3 hidden md:table-cell">المخزون</th>
                                 <th className="text-left text-xs font-semibold text-[#9A978F] uppercase tracking-wider px-6 py-3">الخيارات</th>
                             </tr>
@@ -329,6 +333,12 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                                     </td>
                                     <td className="px-6 py-4 text-sm text-[#7C7870] hidden sm:table-cell">{product.category_name}</td>
                                     <td className="px-6 py-4 text-sm font-bold text-[#1A2D23]">{product.price.toFixed(2)}</td>
+                                    <td className="px-6 py-4 hidden lg:table-cell">
+                                        {product.cost_price > 0
+                                            ? <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>{product.cost_price.toFixed(2)} ج.م</span>
+                                            : <span className="text-xs text-[#B8B5AE]">—</span>
+                                        }
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-[#7C7870] hidden md:table-cell">
                                         {product.stock === 0 ? (
                                             <span className="text-[#C0392B] font-semibold">نفذت الكمية</span>
@@ -444,63 +454,52 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {/* Price row */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>السعر </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={data.price}
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>سعر البيع</label>
+                                    <input type="number" step="0.01" placeholder="0.00" value={data.price}
                                         onChange={(e) => setData('price', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.price && <p className="text-xs text-[#C0392B] mt-1">{errors.price}</p>}
                                 </div>
-
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>سعر التكلفة</label>
+                                    <input type="number" step="0.01" placeholder="0.00" value={data.cost_price}
+                                        onChange={(e) => setData('cost_price', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #FDE68A', color: '#1A2D23' }} />
+                                    {errors.cost_price && <p className="text-xs text-[#C0392B] mt-1">{errors.cost_price}</p>}
+                                </div>
+                            </div>
+                            {/* Stock / Unit / Items row */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>الكمية المتوفرة</label>
-                                    <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={data.stock}
+                                    <input type="number" placeholder="0" value={data.stock}
                                         onChange={(e) => setData('stock', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.stock && <p className="text-xs text-[#C0392B] mt-1">{errors.stock}</p>}
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>الوحدة</label>
-                                    <select
-                                        value={data.unit}
-                                        onChange={(e) => setData('unit', e.target.value)}
+                                    <select value={data.unit} onChange={(e) => setData('unit', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium appearance-none"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    >
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required>
                                         {['شكارة', 'علبة', 'كرتونة', 'شريط', 'دستة', 'لفة'].map((u) => (
                                             <option key={u} value={u}>{u}</option>
                                         ))}
                                     </select>
                                     {errors.unit && <p className="text-xs text-[#C0392B] mt-1">{errors.unit}</p>}
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>القطع داخل الوحدة</label>
-                                    <input
-                                        type="number"
-                                        placeholder="1"
-                                        value={data.number_of_items_in_unit}
+                                    <input type="number" placeholder="1" value={data.number_of_items_in_unit}
                                         onChange={(e) => setData('number_of_items_in_unit', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.number_of_items_in_unit && <p className="text-xs text-[#C0392B] mt-1">{errors.number_of_items_in_unit}</p>}
                                 </div>
                             </div>
@@ -608,63 +607,52 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {/* Price row */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>السعر </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={data.price}
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>سعر البيع</label>
+                                    <input type="number" step="0.01" placeholder="0.00" value={data.price}
                                         onChange={(e) => setData('price', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.price && <p className="text-xs text-[#C0392B] mt-1">{errors.price}</p>}
                                 </div>
-
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>سعر التكلفة</label>
+                                    <input type="number" step="0.01" placeholder="0.00" value={data.cost_price}
+                                        onChange={(e) => setData('cost_price', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #FDE68A', color: '#1A2D23' }} />
+                                    {errors.cost_price && <p className="text-xs text-[#C0392B] mt-1">{errors.cost_price}</p>}
+                                </div>
+                            </div>
+                            {/* Stock / Unit / Items row */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>الكمية المتوفرة</label>
-                                    <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={data.stock}
+                                    <input type="number" placeholder="0" value={data.stock}
                                         onChange={(e) => setData('stock', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.stock && <p className="text-xs text-[#C0392B] mt-1">{errors.stock}</p>}
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>الوحدة</label>
-                                    <select
-                                        value={data.unit}
-                                        onChange={(e) => setData('unit', e.target.value)}
+                                    <select value={data.unit} onChange={(e) => setData('unit', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium appearance-none"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    >
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required>
                                         {['شكارة', 'علبة', 'كرتونة', 'شريط', 'دستة', 'لفة'].map((u) => (
                                             <option key={u} value={u}>{u}</option>
                                         ))}
                                     </select>
                                     {errors.unit && <p className="text-xs text-[#C0392B] mt-1">{errors.unit}</p>}
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5" style={{ color: '#5C5950' }}>القطع داخل الوحدة</label>
-                                    <input
-                                        type="number"
-                                        placeholder="1"
-                                        value={data.number_of_items_in_unit}
+                                    <input type="number" placeholder="1" value={data.number_of_items_in_unit}
                                         onChange={(e) => setData('number_of_items_in_unit', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none text-right font-medium"
-                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }}
-                                        required
-                                    />
+                                        style={{ backgroundColor: '#F4F3EF', border: '1px solid #E2E0DA', color: '#1A2D23' }} required />
                                     {errors.number_of_items_in_unit && <p className="text-xs text-[#C0392B] mt-1">{errors.number_of_items_in_unit}</p>}
                                 </div>
                             </div>
@@ -728,7 +716,7 @@ export default function ProductsIndex({ products = { data: [], current_page: 1, 
                                     يرجى حفظ ملف الإكسل بصيغة <strong>CSV (Comma Delimited)</strong> قبل رفعه. يجب أن يحتوي الصف الأول على الأسماء التالية للأعمدة:
                                 </p>
                                 <div className="bg-white p-2 rounded-lg border border-[#EAE8E2] text-xs font-mono text-center select-all block overflow-x-auto whitespace-nowrap">
-                                    الاسم, السعر, التصنيف, المخزون, الوحدة, القطع داخل الوحدة, الوصف
+                                    الاسم, السعر, سعر التكلفة, التصنيف, المخزون, الوحدة, القطع داخل الوحدة, الوصف
                                 </div>
                                 <p className="text-[10px] text-[#9A978F]">
                                     * أعمدة "الاسم"، "السعر"، و "التصنيف" مطلوبة بشكل أساسي لإتمام عملية الاستيراد. إذا كان التصنيف غير موجود، فسيقوم النظام بإنشائه تلقائياً.
